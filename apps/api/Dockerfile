@@ -1,6 +1,8 @@
 # Contexto de build: la raíz del monorepo  (docker build -f apps/api/Dockerfile .)
-# better-sqlite3 trae binarios precompilados para linux x64/arm64: no hace falta compilar.
+# better-sqlite3 se compila al instalar (node-gyp) según la versión de npm de la imagen: hacen falta python3, make y g++.
 FROM node:24-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
