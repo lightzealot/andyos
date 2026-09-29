@@ -16,7 +16,7 @@ No se borra nada automáticamente (cada archivo pesa muy poco). Revisa y poda la
 ## Restaurar (probado en test con una copia real)
 1. Descarga el `.db.gz` más reciente (o el que quieras) de Drive.
 2. Descomprime: `gunzip andyos-2026-09-29.db.gz` → `andyos-2026-09-29.db`.
-3. Comprueba: `sqlite3 andyos-2026-09-29.db "PRAGMA integrity_check; SELECT COUNT(*) FROM work_items;"` (debe decir `ok` y un número razonable).
+3. Comprueba: `sqlite3 andyos-2026-09-29.db "PRAGMA integrity_check; SELECT COUNT(*) FROM work_items;"` (debe decir `ok` y un número razonable). La copia conserva el modo WAL: ábrela con acceso normal, **no** en solo lectura (`mode=ro`), porque así no abre. El recuento incluye las filas archivadas (el archivado es lógico).
 4. En Easypanel: **para** el servicio `andyos-api`.
 5. Sustituye el archivo del volumen `/data`: copia el `.db` como `/data/andyos.db` y **borra** `/data/andyos.db-wal` y `/data/andyos.db-shm` si existen (son de la base vieja). Se puede hacer desde la consola del servicio o montando el volumen en un contenedor temporal.
 6. Arranca el servicio y comprueba `https://api.andresgomez.store/health` y que el login muestra tus tarjetas.
