@@ -15,7 +15,7 @@ npm test                        # tests de la API
 El frontend y la API deben compartir sitio (localhost sirve; en producción `os.` y `api.` bajo el mismo dominio padre; la cookie queda ligada solo a `api.`).
 
 ## Despliegue
-- **API (Easypanel):** servicio App desde este repo, Dockerfile `apps/api/Dockerfile` con contexto en la raíz. Monta un volumen persistente en `/data` (ahí vive el `.db`). Variables: `ANDYOS_PASSWORD`, `SESSION_SECRET`, `WEB_ORIGIN=https://os.andresgomez.store`, `COOKIE_DOMAIN=.andresgomez.store`. Dominio `api.andresgomez.store` con HTTPS.
+- **API (Easypanel):** servicio App desde este repo, Dockerfile `apps/api/Dockerfile` con contexto en la raíz. Monta un volumen persistente en `/data` (ahí vive el `.db`). Variables: `ANDYOS_PASSWORD`, `SESSION_SECRET`, `WEB_ORIGIN=https://os.andresgomez.store`, `COOKIE_DOMAIN=.andresgomez.store`. Dominio `api.andresgomez.store` con HTTPS. El puerto del dominio debe coincidir con el `PORT` que Easypanel inyecta (80): compruébalo en el log de arranque.
 - **Web (Netlify):** `netlify.toml` ya define build y `apps/web/out`. Variable `NEXT_PUBLIC_API_URL=https://api.andresgomez.store`. Dominio `os.andresgomez.store`.
 - El Dockerfile no se ha probado (no hay Docker en la máquina de desarrollo).
 

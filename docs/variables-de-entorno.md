@@ -15,7 +15,8 @@ Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin 
 | `TRUST_PROXY` | `true` (ya viene en el Dockerfile; necesario tras el proxy de Easypanel) | Ya incluida |
 | `NODE_ENV` | `production` (ya viene en el Dockerfile; activa cookie `Secure`) | Ya incluida |
 | `DB_PATH` | `/data/andyos.db` (ya viene en el Dockerfile) | Ya incluida |
-| `HOST` / `PORT` | `0.0.0.0` / `8787` (ya vienen en el Dockerfile) | Ya incluidas |
+| `HOST` | `0.0.0.0` (ya viene en el Dockerfile) | Ya incluida |
+| `PORT` | Lo define Easypanel (`80`); el Dockerfile trae `8787` por defecto solo para uso fuera de Easypanel | No |
 
 **Panel n8n (opcional; o defines las tres o ninguna, si defines solo algunas la API no arranca):**
 | Variable | Valor |
@@ -24,7 +25,7 @@ Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin 
 | `N8N_API_KEY` | Clave de n8n con alcances `workflow:list` y `execution:list` (solo lectura) |
 | `N8N_TRIGGER_SECRET` | `openssl rand -hex 32` (≥32). Mismo valor que la credencial Header Auth «AndyOS Trigger Secret» en n8n |
 
-Además en Easypanel: **volumen persistente montado en `/data`**, dominio `api.andresgomez.store` con HTTPS apuntando al puerto interno `8787`.
+Además en Easypanel: **volumen persistente montado en `/data`**, dominio `api.andresgomez.store` con HTTPS. **Puerto del dominio: `80`**: Easypanel inyecta `PORT=80` en el contenedor y la app escucha en ese puerto (verifícalo en el log: `andyos-api escuchando en :80`). Si el puerto del dominio no coincide con el del log, da 502.
 
 ## 2. Web — Netlify (*Site configuration → Environment variables*)
 | Variable | Valor |
