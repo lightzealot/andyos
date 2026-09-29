@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { fromInputValue, toInputValue } from '@/lib/dates';
 import { api, ApiError, FORMATS, Item, PLATFORMS, STATUSES, STATUS_LABEL } from '@/lib/api';
 
 const SCRIPT_PARTS = [
@@ -18,6 +19,7 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
   const [f, setF] = useState({
     title: item.title, status: item.status, platform: item.platform ?? '', format: item.format ?? '',
     hook: item.hook, caption: item.caption, notes: item.notes,
+    scheduled: toInputValue(item.scheduled_at),
   });
   const [script, setScript] = useState<Record<string, string>>(item.script ?? {});
   const [error, setError] = useState('');
@@ -32,7 +34,11 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
 
   const save = () => run(() => api<Item>(`/items/${item.id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ ...f, platform: f.platform || null, format: f.format || null, script }),
+    body: JSON.stringify({
+      title: f.title, status: f.status, hook: f.hook, caption: f.caption, notes: f.notes,
+      platform: f.platform || null, format: f.format || null, script: f.hook !== item.hook ? { ...script, hook: f.hook } : script,
+      scheduled_at: fromInputValue(f.scheduled),
+    }),
   }));
   const approve = () => run(() => api<Item>(`/items/${item.id}/approve`, { method: 'POST' }));
 
@@ -52,12 +58,13 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
             <option value="">Formato</option>{FORMATS.map((p) => <option key={p}>{p}</option>)}
           </select>
         </div>
-        <label className="block text-xs text-zinc-400">Hook
-          <textarea className={input} rows={2} value={f.hook} onChange={(e) => setF({ ...f, hook: e.target.value })} />
+        <label className="block text-xs text-zinc-400">Fecha objetivo de publicación
+          <input type="datetime-local" className={input} value={f.scheduled} onChange={(e) => setF({ ...f, scheduled: e.target.value })} />
         </label>
         {SCRIPT_PARTS.map(([k, label]) => (
           <label key={k} className="block text-xs text-zinc-400">{label}
-            <textarea className={input} rows={2} value={script[k] ?? ''} onChange={(e) => setScript({ ...script, [k]: e.target.value })} />
+            <textarea className={input} rows={2} value={k === 'hook' ? f.hook : script[k] ?? ''}
+              onChange={(e) => (k === 'hook' ? setF({ ...f, hook: e.target.value }) : setScript({ ...script, [k]: e.target.value }))} />
           </label>
         ))}
         <label className="block text-xs text-zinc-400">Caption

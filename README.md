@@ -19,5 +19,11 @@ El frontend y la API deben compartir sitio (localhost sirve; en producción `os.
 - **Web (Netlify):** `netlify.toml` ya define build y `apps/web/out`. Variable `NEXT_PUBLIC_API_URL=https://api.andresgomez.net`. Dominio `os.andresgomez.net`.
 - El Dockerfile no se ha probado (no hay Docker en la máquina de desarrollo).
 
+## Módulos
+- **Pipeline** (`/`): kanban de 9 estados con drag & drop.
+- **Calendario** (`/calendar/`): vista mensual y semanal, filtros por plataforma y formato; arrastra tarjetas entre días o al panel «Sin fecha». La fecha (`scheduled_at`) es un objetivo de planificación: no salta la aprobación.
+
+Tests: `npm test` (API) y `npm test -w apps/web` (fechas).
+
 ## Reglas de aprobación
 Ningún contenido pasa a Programado/Publicado/Analizado sin pulsar «Aprobar» en la etapa Aprobación; editar hook, guion, caption o enlaces de un contenido aprobado retira la aprobación.
