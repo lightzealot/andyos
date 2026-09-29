@@ -1,0 +1,7 @@
+[build]
+  base = "."
+  command = "npm ci && npm run build -w apps/web"
+  publish = "apps/web/out"
+
+[build.environment]
+  NODE_VERSION = "24"
