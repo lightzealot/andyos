@@ -17,6 +17,8 @@ export interface Config {
   cookieDomain?: string;
   secureCookie: boolean;
   inboxSecret: string;
+  /** true solo si la API está detrás de un proxy de confianza (Easypanel/Traefik). */
+  trustProxy?: boolean;
 }
 
 const COOKIE = 'andyos_session';
@@ -44,7 +46,7 @@ const parse = (r: Row): Item => ({
 });
 
 export async function buildApp(db: Db, cfg: Config) {
-  const app = Fastify({ logger: false });
+  const app = Fastify({ logger: false, trustProxy: cfg.trustProxy ?? false });
   await app.register(cookie);
   await app.register(cors, { origin: cfg.webOrigin, credentials: true, methods: ['GET', 'POST', 'PATCH', 'DELETE'] });
   await app.register(rateLimit, { global: false });

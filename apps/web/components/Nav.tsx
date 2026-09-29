@@ -4,6 +4,7 @@ const LINKS = [
   { href: '/inbox/', label: 'Inbox' },
   { href: '/', label: 'Pipeline' },
   { href: '/calendar/', label: 'Calendario' },
+  { href: '/references/', label: 'Referencias' },
 ];
 
 export function Nav({ current }: { current: string }) {

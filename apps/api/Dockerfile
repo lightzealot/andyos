@@ -6,7 +6,7 @@ COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
 RUN npm ci -w apps/api --include-workspace-root=false
 COPY apps/api apps/api
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8787 DB_PATH=/data/andyos.db
+ENV NODE_ENV=production TRUST_PROXY=true HOST=0.0.0.0 PORT=8787 DB_PATH=/data/andyos.db
 VOLUME /data
 USER node
 EXPOSE 8787

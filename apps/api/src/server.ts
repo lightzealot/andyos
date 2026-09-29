@@ -25,6 +25,7 @@ const app = await buildApp(openDb(dbPath), {
   inboxSecret,
   cookieDomain: process.env.COOKIE_DOMAIN || undefined,
   secureCookie: process.env.NODE_ENV === 'production',
+  trustProxy: process.env.TRUST_PROXY === 'true',
 });
 
 const port = Number(process.env.PORT ?? 8787);

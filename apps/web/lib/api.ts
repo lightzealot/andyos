@@ -54,3 +54,17 @@ export interface Idea {
   source: string;
   created_at: string;
 }
+
+export interface Reference {
+  id: string;
+  title: string;
+  url: string | null;
+  creator: string;
+  platform: string | null;
+  format: string | null;
+  why_it_works: string;
+  hook_pattern: string;
+  notes: string;
+  tags: string[];
+  derived_count: number;
+}

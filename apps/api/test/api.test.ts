@@ -107,3 +107,15 @@ describe('compuerta de aprobación humana', () => {
     expect(r.json().approved_at).toBeNull();
   });
 });
+
+describe('trustProxy', () => {
+  it('con trustProxy el límite de login es por IP de cliente (X-Forwarded-For)', async () => {
+    const a = await buildApp(openDb(':memory:'), { ...cfg, trustProxy: true });
+    const login = (ip: string) => a.inject({
+      method: 'POST', url: '/auth/login', payload: { password: 'mala' }, headers: { 'x-forwarded-for': ip },
+    });
+    for (let i = 0; i < 6; i++) await login('1.1.1.1');
+    expect((await login('1.1.1.1')).statusCode).toBe(429);
+    expect((await login('2.2.2.2')).statusCode).toBe(401); // otro cliente no queda bloqueado
+  });
+});
