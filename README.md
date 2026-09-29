@@ -25,5 +25,9 @@ El frontend y la API deben compartir sitio (localhost sirve; en producción `os.
 
 Tests: `npm test` (API) y `npm test -w apps/web` (fechas).
 
+- **Inbox** (`/inbox/`): ideas capturadas por Telegram (webhook desde n8n) o a mano; etiquetas, descartar y «Pasar al pipeline». Workflow en [`n8n/`](n8n/README.md).
+
+Variables nuevas de la API: `INBOX_WEBHOOK_SECRET` (mín. 32 caracteres; el mismo valor va en la credencial Header Auth de n8n).
+
 ## Reglas de aprobación
 Ningún contenido pasa a Programado/Publicado/Analizado sin pulsar «Aprobar» en la etapa Aprobación; editar hook, guion, caption o enlaces de un contenido aprobado retira la aprobación.

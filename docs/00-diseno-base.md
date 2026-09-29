@@ -114,3 +114,9 @@ Config mínima de claude usada: `--tools "" --strict-mcp-config --mcp-config '{"
 - Proveedor IA principal: `claude -p` en configuración mínima. Respaldo: `codex exec`. (Confirmado 2026-09-28.)
 - Reglas del worker: sin `--bare`, sin `ANTHROPIC_API_KEY`/`ANTHROPIC_AUTH_TOKEN` en el entorno, directorio aislado, nunca bypassPermissions.
 - Riesgo de facturación/términos de `claude -p` aceptado y informe de Fase 0 aprobado por Andrés (2026-09-28).
+
+## 10. Ajustes de diseño durante la Fase 1
+- Webhooks entrantes (n8n → API): secreto compartido en la cabecera `X-Webhook-Secret` (comparación en tiempo constante, HTTPS, límite 60/min) en lugar de HMAC de cuerpo. Motivo: el HMAC exigiría calcularlo en un nodo de n8n por mensaje; con HTTPS y un secreto largo el riesgo residual (replay de una idea duplicada) lo cubre la clave de idempotencia `chat_id:message_id`. Reconsiderar HMAC+timestamp para webhooks que disparen acciones con efecto externo.
+- SQL directo en lugar de Drizzle (2 tablas de contenido + `idea_details`).
+- Ideas: `work_items.type='idea'` con estados `nueva|descartada|promovida` y tabla 1:1 `idea_details` (origen, clave de idempotencia, enlace al contenido promovido).
+- Etiquetado automático con IA: se difiere a la Fase 2 (primer tipo de trabajo del LLM Gateway). Requiere la cola, el worker y el manejo de cuota; hacerlo antes duplicaría esa lógica.
