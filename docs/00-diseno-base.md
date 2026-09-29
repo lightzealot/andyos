@@ -108,3 +108,9 @@ Fuentes: code.claude.com/docs/en/headless, /authentication, /agent-sdk/overview;
 Config mínima de claude usada: `--tools "" --strict-mcp-config --mcp-config '{"mcpServers":{}}' --disable-slash-commands --setting-sources project --system-prompt "..." --permission-mode dontAsk --output-format json --json-schema <schema>` con `</dev/null`. Salida en `.structured_output`. `codex exec` requiere `</dev/null` (si no, se cuelga esperando stdin), `--skip-git-repo-check -s read-only --output-schema f.json --output-last-message out.json`.
 
 **Calidad (hooks, guion, caption)**: Claude produjo texto más específico y en voz directa, con estructura correcta y JSON válido en 3/3. Debilidad: **inventa cifras/afirmaciones** ("6 nodos", "3 segundos", "cero herramientas de pago") → toda salida requiere revisión humana (ya es requisito). Codex: JSON válido, texto más genérico y menos afilado; solo probé hooks (1/3 tareas).
+
+## 9. Decisiones tomadas
+- Base de datos: SQLite (Drizzle). Arquitectura: opción A (web estática en Netlify + `andyos-api` en VPS + worker pull en homelab). Dominios: `os.` / `api.andresgomez.net`; n8n en `n8n.andresgomez.store`.
+- Proveedor IA principal: `claude -p` en configuración mínima. Respaldo: `codex exec`. (Confirmado 2026-09-28.)
+- Reglas del worker: sin `--bare`, sin `ANTHROPIC_API_KEY`/`ANTHROPIC_AUTH_TOKEN` en el entorno, directorio aislado, nunca bypassPermissions.
+- PENDIENTE de confirmar: aceptación explícita del riesgo de cambio de facturación/términos; aprobación final del informe de Fase 0.
