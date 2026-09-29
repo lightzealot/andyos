@@ -8,6 +8,7 @@ import { makeSession, passwordMatches, sessionValid } from './auth.js';
 import { insertContent } from './content.js';
 import { registerIdeas } from './ideas.js';
 import { registerReferences } from './references.js';
+import { registerN8n, type N8nConfig } from './n8n.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
 export interface Config {
@@ -19,6 +20,8 @@ export interface Config {
   inboxSecret: string;
   /** true solo si la API está detrás de un proxy de confianza (Easypanel/Traefik). */
   trustProxy?: boolean;
+  /** Panel de n8n; ausente = módulo desactivado. */
+  n8n?: N8nConfig;
 }
 
 const COOKIE = 'andyos_session';
@@ -170,6 +173,7 @@ export async function buildApp(db: Db, cfg: Config) {
 
   registerIdeas(app, db, cfg.inboxSecret);
   registerReferences(app, db);
+  registerN8n(app, cfg.n8n ?? null);
 
   return app;
 }
