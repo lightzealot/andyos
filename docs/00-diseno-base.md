@@ -12,7 +12,7 @@ Guion: Hook → Contexto → Cambio → Aplicación/Demo → Resultado → CTA.
 
 Monorepo único `AndyOS`: `apps/web` (Next.js con export estático, en Netlify), `apps/api` (Fastify/Hono + Drizzle + SQLite, en VPS/Easypanel), `apps/worker` (homelab, Fase 2), `n8n/` (workflows JSON), `docs/`.
 - Frontend: `os.<dominio>` (Netlify). API: `api.<dominio>` (VPS). Mismo dominio padre para cookie httpOnly de sesión.
-- n8n: `n8n.andresgomez.store` (confirmado). Frontend `os.andresgomez.net`, API `api.andresgomez.net` (confirmados). Repo: github.com/lightzealot/andyos.
+- n8n: `n8n.andresgomez.store` (confirmado). Frontend `os.andresgomez.store`, API `api.andresgomez.store` (confirmados). Repo: github.com/lightzealot/andyos.
 - La API es el único punto expuesto: login, rate limit, CORS restringido, webhooks con HMAC.
 - Base de datos: SQLite en volumen persistente.
 Lo de abajo (diagrama v1) se mantiene salvo que "AndyOS" = `apps/web` + `apps/api`.
@@ -110,7 +110,7 @@ Config mínima de claude usada: `--tools "" --strict-mcp-config --mcp-config '{"
 **Calidad (hooks, guion, caption)**: Claude produjo texto más específico y en voz directa, con estructura correcta y JSON válido en 3/3. Debilidad: **inventa cifras/afirmaciones** ("6 nodos", "3 segundos", "cero herramientas de pago") → toda salida requiere revisión humana (ya es requisito). Codex: JSON válido, texto más genérico y menos afilado; solo probé hooks (1/3 tareas).
 
 ## 9. Decisiones tomadas
-- Base de datos: SQLite (Drizzle). Arquitectura: opción A (web estática en Netlify + `andyos-api` en VPS + worker pull en homelab). Dominios: `os.` / `api.andresgomez.net`; n8n en `n8n.andresgomez.store`.
+- Base de datos: SQLite (Drizzle). Arquitectura: opción A (web estática en Netlify + `andyos-api` en VPS + worker pull en homelab). Dominios: `os.` / `api.andresgomez.store`; n8n en `n8n.andresgomez.store`.
 - Proveedor IA principal: `claude -p` en configuración mínima. Respaldo: `codex exec`. (Confirmado 2026-09-28.)
 - Reglas del worker: sin `--bare`, sin `ANTHROPIC_API_KEY`/`ANTHROPIC_AUTH_TOKEN` en el entorno, directorio aislado, nunca bypassPermissions.
 - Riesgo de facturación/términos de `claude -p` aceptado y informe de Fase 0 aprobado por Andrés (2026-09-28).

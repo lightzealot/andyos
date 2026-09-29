@@ -9,6 +9,7 @@ import { insertContent } from './content.js';
 import { registerIdeas } from './ideas.js';
 import { registerReferences } from './references.js';
 import { registerN8n, type N8nConfig } from './n8n.js';
+import { registerBackup } from './backup.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
 export interface Config {
@@ -22,6 +23,8 @@ export interface Config {
   trustProxy?: boolean;
   /** Panel de n8n; ausente = módulo desactivado. */
   n8n?: N8nConfig;
+  /** Secreto del endpoint de respaldo; ausente = endpoint desactivado. */
+  backupSecret?: string;
 }
 
 const COOKIE = 'andyos_session';
@@ -174,6 +177,7 @@ export async function buildApp(db: Db, cfg: Config) {
   registerIdeas(app, db, cfg.inboxSecret);
   registerReferences(app, db);
   registerN8n(app, cfg.n8n ?? null);
+  registerBackup(app, db, cfg.backupSecret);
 
   return app;
 }

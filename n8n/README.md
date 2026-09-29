@@ -11,7 +11,7 @@ Instancia: `https://n8n.andresgomez.store`. Importar: *Workflows → Import from
 3. Averigua tu chat id (escribe al bot y mira la ejecución del trigger: `message.chat.id`) y ponlo en el nodo *Telegram Trigger → Additional Fields → Chat IDs*. **Sin esto, cualquiera que encuentre tu bot podría enviarte ideas.**
 4. Genera el secreto: `openssl rand -hex 32`. Ponlo en el servicio de la API (Easypanel) como `INBOX_WEBHOOK_SECRET`.
 5. En n8n crea la credencial **Header Auth** («AndyOS Inbox Secret»): *Name* `X-Webhook-Secret`, *Value* el mismo secreto.
-6. Ajusta la URL del nodo *Guardar en AndyOS* si tu API no está en `https://api.andresgomez.net`.
+6. Ajusta la URL del nodo *Guardar en AndyOS* si tu API no está en `https://api.andresgomez.store`.
 7. Activa el workflow (el Telegram Trigger registra su webhook al activarse; n8n debe ser accesible por HTTPS público).
 
 Comportamiento: guarda solo texto; un mensaje repetido (reintento) no duplica la idea (clave `chat_id:message_id`); el nodo HTTP reintenta 3 veces y, si falla, avisa por Telegram. **No publica ni envía nada fuera de tu chat.**

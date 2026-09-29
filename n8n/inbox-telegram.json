@@ -62,7 +62,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.andresgomez.net/webhooks/inbox",
+        "url": "https://api.andresgomez.store/webhooks/inbox",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,

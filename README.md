@@ -12,11 +12,11 @@ npm run dev:api                 # http://localhost:8787
 NEXT_PUBLIC_API_URL=http://localhost:8787 npm run dev:web   # http://localhost:3000
 npm test                        # tests de la API
 ```
-El frontend y la API deben compartir sitio (localhost sirve; en producción `os.` y `api.` bajo el mismo dominio padre, con `COOKIE_DOMAIN=.andresgomez.net`).
+El frontend y la API deben compartir sitio (localhost sirve; en producción `os.` y `api.` bajo el mismo dominio padre; la cookie queda ligada solo a `api.`).
 
 ## Despliegue
-- **API (Easypanel):** servicio App desde este repo, Dockerfile `apps/api/Dockerfile` con contexto en la raíz. Monta un volumen persistente en `/data` (ahí vive el `.db`). Variables: `ANDYOS_PASSWORD`, `SESSION_SECRET`, `WEB_ORIGIN=https://os.andresgomez.net`, `COOKIE_DOMAIN=.andresgomez.net`. Dominio `api.andresgomez.net` con HTTPS.
-- **Web (Netlify):** `netlify.toml` ya define build y `apps/web/out`. Variable `NEXT_PUBLIC_API_URL=https://api.andresgomez.net`. Dominio `os.andresgomez.net`.
+- **API (Easypanel):** servicio App desde este repo, Dockerfile `apps/api/Dockerfile` con contexto en la raíz. Monta un volumen persistente en `/data` (ahí vive el `.db`). Variables: `ANDYOS_PASSWORD`, `SESSION_SECRET`, `WEB_ORIGIN=https://os.andresgomez.store`, `COOKIE_DOMAIN=.andresgomez.store`. Dominio `api.andresgomez.store` con HTTPS. El puerto del dominio debe coincidir con el `PORT` que Easypanel inyecta (80): compruébalo en el log de arranque.
+- **Web (Netlify):** `netlify.toml` ya define build y `apps/web/out`. Variable `NEXT_PUBLIC_API_URL=https://api.andresgomez.store`. Dominio `os.andresgomez.store`.
 - El Dockerfile no se ha probado (no hay Docker en la máquina de desarrollo).
 
 ## Módulos
@@ -32,6 +32,8 @@ Variables nuevas de la API: `INBOX_WEBHOOK_SECRET` (mín. 32 caracteres; el mism
 - **Referencias** (`/references/`): biblioteca con nota de *por qué funciona* y patrón de hook; «Crear contenido inspirado» genera una tarjeta en el pipeline enlazada a la referencia. La URL solo se guarda como enlace: el servidor nunca la visita.
 
 - **n8n** (`/n8n/`): workflows con estado y errores recientes, ejecuciones (filtro de errores) y botón «Disparar» para workflows habilitados. Clave de API de solo lectura; el disparo va por webhook porque la API pública no puede ejecutar workflows. Ver [`n8n/README.md`](n8n/README.md).
+
+- **Respaldo**: copia diaria de la base a Google Drive vía n8n, con aviso por Telegram si falla. Ver [`docs/respaldo.md`](docs/respaldo.md) (incluye la restauración).
 
 ## Reglas de aprobación
 Ningún contenido pasa a Programado/Publicado/Analizado sin pulsar «Aprobar» en la etapa Aprobación; editar hook, guion, caption o enlaces de un contenido aprobado retira la aprobación.
