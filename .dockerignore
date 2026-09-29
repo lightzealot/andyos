@@ -1,0 +1,15 @@
+**/node_modules
+**/.next
+**/out
+**/data
+.git
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+**/*.log
+.DS_Store
+docs
+n8n

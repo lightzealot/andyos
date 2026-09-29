@@ -2,6 +2,8 @@
 
 Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin valores reales) está versionado.
 
+> **Atajo:** en tu máquina hay un archivo `.env.production` (ignorado por git, permisos 600) con los secretos ya generados y todas las variables de abajo. Ábrelo con un editor y copia los valores; no lo subas ni lo pegues en chats.
+
 ## 1. API — Easypanel (servicio `andyos-api`, pestaña *Environment*)
 | Variable | Valor | Obligatoria |
 |---|---|---|
