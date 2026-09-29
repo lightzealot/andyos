@@ -44,3 +44,13 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!res.ok) throw new ApiError(res.status, (data as { error?: string }).error ?? 'error');
   return data as T;
 }
+
+export interface Idea {
+  id: string;
+  title: string;
+  status: 'nueva' | 'descartada' | 'promovida';
+  notes: string;
+  tags: string[];
+  source: string;
+  created_at: string;
+}
