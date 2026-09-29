@@ -87,3 +87,24 @@ Toda salida de IA guarda `provider` y `model`, y queda como borrador hasta aprob
 - Publicación automática en Instagram/TikTok/YouTube: permisos y límites de API [VERIFICAR]; lo no automatizable queda como paso manual asistido.
 - Cuota agotada: la cola debe pausar y avisar, no fallar en silencio.
 - Cada módulo nuevo es operación adicional: no se añade nada sin uso claro.
+
+## 8. Resultados de las pruebas de CLIs (2026-09-28)
+
+Fuentes: code.claude.com/docs/en/headless, /authentication, /agent-sdk/overview; support.claude.com artículo 15036540; developers.openai.com/codex/noninteractive.
+
+**Facturación (verificado)**
+- `claude -p` con login de suscripción: hoy sigue descontando de los límites del plan. Anthropic anunció (15-jun-2026) pasarlo a un crédito mensual aparte (Pro $20, Max 5x $100, Max 20x $200) y luego lo **pausó**; puede volver. Sin crédito y sin "usage credits" activados, las peticiones se detienen; con ellos activados, cobra a tarifa API.
+- `--bare` NO usa la suscripción (exige `ANTHROPIC_API_KEY`): prohibido en el worker. Si `ANTHROPIC_API_KEY`/`ANTHROPIC_AUTH_TOKEN` existe en el entorno, `-p` lo usa siempre → cobro por token. El worker debe arrancar con esas variables eliminadas. (En esta máquina no estaban definidas.)
+- Términos: Anthropic no permite a terceros ofrecer login/límites de claude.ai en sus productos. Uso personal propio no está prohibido en lo leído, pero **no hay garantía escrita** de que una cola automática 24/7 con suscripción sea uso aceptado. Riesgo asumido y documentado.
+- Codex: la doc recomienda API key en CI; el login ChatGPT se menciona para enterprise. En la prueba funcionó con login ChatGPT personal. Términos para automatización: NO verificado.
+
+**Rendimiento medido (mismo prompt de 5 hooks)**
+| Config | Tiempo | Tokens de contexto | Coste estimado* |
+|---|---|---|---|
+| `claude -p` por defecto (carga MCPs, skills, hooks) | 12-20 s | 350k-630k | 1.4-2.5 USD |
+| `claude -p` mínimo | 4 s | ~1.1k | 0.008 USD |
+| `codex exec` | 12 s | ~19.9k | n/d |
+*estimación cliente, no factura real.
+Config mínima de claude usada: `--tools "" --strict-mcp-config --mcp-config '{"mcpServers":{}}' --disable-slash-commands --setting-sources project --system-prompt "..." --permission-mode dontAsk --output-format json --json-schema <schema>` con `</dev/null`. Salida en `.structured_output`. `codex exec` requiere `</dev/null` (si no, se cuelga esperando stdin), `--skip-git-repo-check -s read-only --output-schema f.json --output-last-message out.json`.
+
+**Calidad (hooks, guion, caption)**: Claude produjo texto más específico y en voz directa, con estructura correcta y JSON válido en 3/3. Debilidad: **inventa cifras/afirmaciones** ("6 nodos", "3 segundos", "cero herramientas de pago") → toda salida requiere revisión humana (ya es requisito). Codex: JSON válido, texto más genérico y menos afilado; solo probé hooks (1/3 tareas).
