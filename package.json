@@ -5,6 +5,7 @@
   "scripts": {
     "dev:api": "npm run dev -w apps/api",
     "dev:web": "npm run dev -w apps/web",
-    "test": "npm test -w apps/api"
+    "test": "npm test -w apps/api",
+    "build:web": "npm run build -w apps/web"
   }
 }
