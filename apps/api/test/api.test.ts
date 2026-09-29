@@ -4,7 +4,7 @@ import { openDb } from '../src/db.js';
 
 const cfg = {
   password: 'pw-de-prueba', sessionSecret: 'x'.repeat(40),
-  webOrigin: 'http://localhost:3000', secureCookie: false,
+  webOrigin: 'http://localhost:3000', secureCookie: false, inboxSecret: 'i'.repeat(40),
 };
 
 let app: Awaited<ReturnType<typeof buildApp>>;

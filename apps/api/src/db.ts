@@ -32,6 +32,14 @@ CREATE TABLE IF NOT EXISTS content_details (
   approved_at TEXT,
   ai_generated INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS idea_details (
+  work_item_id TEXT PRIMARY KEY REFERENCES work_items(id) ON DELETE CASCADE,
+  source TEXT NOT NULL,
+  source_id TEXT,
+  promoted_to TEXT REFERENCES work_items(id),
+  UNIQUE (source, source_id)
+);
 `;
 
 export function openDb(path: string): Db {

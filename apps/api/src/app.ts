@@ -2,10 +2,11 @@ import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
-import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { Db } from './db.js';
 import { makeSession, passwordMatches, sessionValid } from './auth.js';
+import { insertContent } from './content.js';
+import { registerIdeas } from './ideas.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
 export interface Config {
@@ -14,6 +15,7 @@ export interface Config {
   webOrigin: string;
   cookieDomain?: string;
   secureCookie: boolean;
+  inboxSecret: string;
 }
 
 const COOKIE = 'andyos_session';
@@ -47,12 +49,12 @@ export async function buildApp(db: Db, cfg: Config) {
   await app.register(rateLimit, { global: false });
 
   const getItem = (id: string) => {
-    const r = db.prepare(`${SELECT} WHERE w.id = ? AND w.archived_at IS NULL`).get(id) as Row | undefined;
+    const r = db.prepare(`${SELECT} WHERE w.id = ? AND w.type = 'content' AND w.archived_at IS NULL`).get(id) as Row | undefined;
     return r ? parse(r) : undefined;
   };
 
   app.addHook('preHandler', async (req, reply) => {
-    if (req.url.startsWith('/auth/login') || req.url === '/health') return;
+    if (req.url.startsWith('/auth/login') || req.url === '/health' || req.url.startsWith('/webhooks/')) return;
     if (req.method === 'OPTIONS') return;
     if (!sessionValid(req.cookies[COOKIE], cfg.sessionSecret)) {
       return reply.code(401).send({ error: 'unauthorized' });
@@ -81,7 +83,7 @@ export async function buildApp(db: Db, cfg: Config) {
   app.get('/auth/me', async () => ({ ok: true }));
 
   app.get('/items', async (req) => {
-    const { type } = z.object({ type: z.string().optional() }).parse(req.query);
+    const { type } = z.object({ type: z.enum(['content']).optional() }).parse(req.query);
     const rows = (type
       ? db.prepare(`${SELECT} WHERE w.archived_at IS NULL AND w.type = ? ORDER BY w.updated_at DESC`).all(type)
       : db.prepare(`${SELECT} WHERE w.archived_at IS NULL ORDER BY w.updated_at DESC`).all()) as Row[];
@@ -95,20 +97,7 @@ export async function buildApp(db: Db, cfg: Config) {
     if ((GATED as readonly string[]).includes(d.status)) {
       return reply.code(409).send({ error: 'approval_required' });
     }
-    const id = randomUUID();
-    const now = new Date().toISOString();
-    db.transaction(() => {
-      db.prepare(`INSERT INTO work_items (id, type, title, status, notes, tags, created_at, updated_at)
-                  VALUES (?, 'content', ?, ?, ?, ?, ?, ?)`)
-        .run(id, d.title, d.status, d.notes, JSON.stringify(d.tags), now, now);
-      db.prepare(`INSERT INTO content_details (work_item_id, platform, format, pillar, hook, script, caption,
-                  scheduled_at, published_at, published_url, asset_links, cta_keyword)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(id, d.platform ?? null, d.format ?? null, d.pillar ?? null, d.hook ?? '',
-          JSON.stringify(d.script ?? {}), d.caption ?? '', d.scheduled_at ?? null,
-          d.published_at ?? null, d.published_url ?? null, JSON.stringify(d.asset_links ?? []),
-          d.cta_keyword ?? null);
-    })();
+    const id = insertContent(db, d);
     return reply.code(201).send(getItem(id));
   });
 
@@ -175,6 +164,8 @@ export async function buildApp(db: Db, cfg: Config) {
     const r = db.prepare('UPDATE work_items SET archived_at = ?, updated_at = ? WHERE id = ? AND archived_at IS NULL').run(now, now, id);
     return r.changes ? { ok: true } : reply.code(404).send({ error: 'not_found' });
   });
+
+  registerIdeas(app, db, cfg.inboxSecret);
 
   return app;
 }
