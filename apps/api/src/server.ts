@@ -36,6 +36,10 @@ if (n8nSet.length === n8nVars.length) {
   n8n = { baseUrl, apiKey: process.env.N8N_API_KEY!, triggerSecret };
 }
 
+const backupSecret = process.env.BACKUP_WEBHOOK_SECRET || undefined;
+if (backupSecret && backupSecret.length < 32) throw new Error('BACKUP_WEBHOOK_SECRET debe tener al menos 32 caracteres');
+if (backupSecret && backupSecret === inboxSecret) throw new Error('BACKUP_WEBHOOK_SECRET debe ser distinto de INBOX_WEBHOOK_SECRET');
+
 const app = await buildApp(openDb(dbPath), {
   password: required('ANDYOS_PASSWORD'),
   sessionSecret: secret,
@@ -45,6 +49,7 @@ const app = await buildApp(openDb(dbPath), {
   secureCookie: process.env.NODE_ENV === 'production',
   trustProxy: process.env.TRUST_PROXY === 'true',
   n8n,
+  backupSecret,
 });
 
 const port = Number(process.env.PORT ?? 8787);

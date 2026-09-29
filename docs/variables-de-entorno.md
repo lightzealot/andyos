@@ -25,6 +25,11 @@ Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin 
 | `N8N_API_KEY` | Clave de n8n con alcances `workflow:list` y `execution:list` (solo lectura) |
 | `N8N_TRIGGER_SECRET` | `openssl rand -hex 32` (≥32). Mismo valor que la credencial Header Auth «AndyOS Trigger Secret» en n8n |
 
+**Respaldo diario (opcional; sin ella el endpoint no existe):**
+| Variable | Valor |
+|---|---|
+| `BACKUP_WEBHOOK_SECRET` | `openssl rand -hex 32` (≥32, **distinto** de `INBOX_WEBHOOK_SECRET`). Mismo valor que la credencial Header Auth «AndyOS Backup Secret» en n8n |
+
 Además en Easypanel: **volumen persistente montado en `/data`**, dominio `api.andresgomez.store` con HTTPS. **Puerto del dominio: `80`**: Easypanel inyecta `PORT=80` en el contenedor y la app escucha en ese puerto (verifícalo en el log: `andyos-api escuchando en :80`). Si el puerto del dominio no coincide con el del log, da 502.
 
 ## 2. Web — Netlify (*Site configuration → Environment variables*)
@@ -40,6 +45,7 @@ Se incrusta **al compilar**: si la cambias hay que volver a desplegar. `NODE_VER
 |---|---|---|
 | «Telegram AndyOS» | Telegram API | Token de @BotFather |
 | «AndyOS Inbox Secret» | Header Auth | *Name* `X-Webhook-Secret`, *Value* = `INBOX_WEBHOOK_SECRET` |
+| «AndyOS Backup Secret» | Header Auth | *Name* `X-Webhook-Secret`, *Value* = `BACKUP_WEBHOOK_SECRET` |
 | «AndyOS Trigger Secret» | Header Auth | *Name* `X-Webhook-Secret`, *Value* = `N8N_TRIGGER_SECRET` (distinto del secreto del Inbox) |
 | Clave de API (Settings → n8n API) | API key | Alcances `workflow:list` y `execution:list`; su valor va en `N8N_API_KEY` |
 
