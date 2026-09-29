@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Solo http(s): evita esquemas como javascript: si alguna vista renderiza el enlace.
+const HttpUrl = z.string().max(2000).url().refine((u) => /^https?:\/\//i.test(u), 'solo http(s)');
+
 export const STATUSES = [
   'idea', 'hook', 'guion', 'produccion', 'edicion',
   'aprobacion', 'programado', 'publicado', 'analizado',
@@ -26,8 +29,8 @@ const Content = {
   caption: z.string().max(5000),
   scheduled_at: z.string().datetime({ offset: true }).nullable(),
   published_at: z.string().datetime({ offset: true }).nullable(),
-  published_url: z.string().url().nullable(),
-  asset_links: z.array(z.string().url()).max(50),
+  published_url: HttpUrl.nullable(),
+  asset_links: z.array(HttpUrl).max(50),
   cta_keyword: z.string().max(50).nullable(),
 };
 

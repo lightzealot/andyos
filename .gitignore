@@ -10,3 +10,4 @@ dist/
 *.db-wal
 .DS_Store
 next-env.d.ts
+*.tsbuildinfo

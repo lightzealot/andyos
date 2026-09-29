@@ -53,6 +53,16 @@ const parse = (r: Row): Item => ({
 
 export async function buildApp(db: Db, cfg: Config) {
   const app = Fastify({ logger: false, trustProxy: cfg.trustProxy ?? false });
+
+  // Los errores del servidor no devuelven mensajes internos (SQL, rutas, etc.); el detalle solo va al log.
+  app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
+    const status = err.statusCode && err.statusCode >= 400 ? err.statusCode : 500;
+    if (status >= 500) {
+      console.error('[error]', err.message);
+      return reply.code(500).send({ error: 'internal_error' });
+    }
+    return reply.code(status).send({ error: status === 429 ? 'rate_limited' : 'bad_request' });
+  });
   await app.register(cookie);
   await app.register(cors, { origin: cfg.webOrigin, credentials: true, methods: ['GET', 'POST', 'PATCH', 'DELETE'] });
   await app.register(rateLimit, { global: false });

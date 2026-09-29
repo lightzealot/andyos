@@ -40,7 +40,7 @@ export function registerN8n(app: FastifyInstance, cfg: N8nConfig | null) {
     if (hit && Date.now() - hit.at < CACHE_MS) return hit.value as T;
     const url = new URL(`${cfg!.baseUrl}/api/v1${path}`);
     for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v);
-    const res = await fetch(url, { headers: { 'X-N8N-API-KEY': cfg!.apiKey }, signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, { headers: { 'X-N8N-API-KEY': cfg!.apiKey }, redirect: 'error', signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error(`n8n ${res.status}`);
     const value = (await res.json()) as T;
     cache.set(key, { at: Date.now(), value });
@@ -122,6 +122,7 @@ export function registerN8n(app: FastifyInstance, cfg: N8nConfig | null) {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-webhook-secret': cfg.triggerSecret },
         body: JSON.stringify({ source: 'andyos', payload: body.data.payload }),
+        redirect: 'error',
         signal: AbortSignal.timeout(15_000),
       });
       cache.clear(); // que la siguiente lista muestre la ejecución nueva
