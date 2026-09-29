@@ -7,6 +7,7 @@ import type { Db } from './db.js';
 import { makeSession, passwordMatches, sessionValid } from './auth.js';
 import { insertContent } from './content.js';
 import { registerIdeas } from './ideas.js';
+import { registerReferences } from './references.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
 export interface Config {
@@ -166,6 +167,7 @@ export async function buildApp(db: Db, cfg: Config) {
   });
 
   registerIdeas(app, db, cfg.inboxSecret);
+  registerReferences(app, db);
 
   return app;
 }

@@ -40,6 +40,23 @@ CREATE TABLE IF NOT EXISTS idea_details (
   promoted_to TEXT REFERENCES work_items(id),
   UNIQUE (source, source_id)
 );
+
+CREATE TABLE IF NOT EXISTS reference_details (
+  work_item_id TEXT PRIMARY KEY REFERENCES work_items(id) ON DELETE CASCADE,
+  url TEXT,
+  creator TEXT NOT NULL DEFAULT '',
+  platform TEXT,
+  format TEXT,
+  why_it_works TEXT NOT NULL DEFAULT '',
+  hook_pattern TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS item_links (
+  from_id TEXT NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
+  to_id TEXT NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('inspired_by','derived_from','repurposed_from')),
+  PRIMARY KEY (from_id, to_id, kind)
+);
 `;
 
 export function openDb(path: string): Db {
