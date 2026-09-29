@@ -26,7 +26,7 @@ Worker (máquina con el CLI) ──HTTPS saliente──> API: claim → ejecuta 
 
 ## 3. Cola: límites, reintentos y cuota agotada
 - Concurrencia máxima configurable (defecto 1; máx. 2). Reclamo atómico con *lease*: un trabajo "running" sin latido se devuelve a la cola.
-- Límites de uso diario y semanal configurables (`queue_settings`), comprobados al encolar y al reclamar. Propuesta de defectos: 30/día, 150/semana (ajustar a tu plan).
+- Límites de uso diario y semanal configurables (`queue_settings`), comprobados al encolar y al reclamar. Tu plan es **Claude Pro** y **ChatGPT Plus** (codex): límites de uso bajos y compartidos con tu uso interactivo. Defectos propuestos, deliberadamente conservadores: **15 trabajos/día y 60/semana**, concurrencia 1; se ajustan a la vista del uso real y del spike.
 - Reintentos con backoff exponencial (p. ej. 1, 5, 20 min; máx. 3) solo para errores transitorios; los errores de validación de esquema no se reintentan a ciegas.
 - **Cuota agotada:** al detectarla (se define en el spike), la cola pasa a `paused`, los trabajos siguen en `queued`, se avisa por Telegram (API → webhook de n8n → bot de AndyOS) y se reanuda solo tras `paused_until` o a mano. Nunca falla en silencio.
 - Registro por trabajo de proveedor y modelo (`modelUsage` del JSON del CLI).
@@ -45,10 +45,10 @@ Worker (máquina con el CLI) ──HTTPS saliente──> API: claim → ejecuta 
 Opcionales posteriores, **solo si lo pides**: repurposing con transcripción y RAG con Qdrant.
 
 ## 5. Decisiones que necesito
-- **A. Dónde corre el worker:** homelab Ubuntu (recomendado por aislamiento) o este Mac mini. Requiere CLI instalado y autenticado allí, y que esté encendido.
+- **A. Dónde corre el worker (confirmado): este Mac mini, siempre encendido.** `claude` y `codex` ya están instalados y con sesión. Aislamiento: `CLAUDE_CONFIG_DIR` propio, directorio de trabajo vacío, servicio `launchd`, y evitar la suspensión del equipo.
 - **B. Gateway en la API en vez de n8n** (sección 1).
 - **C. CarruselOS:** es una habilidad interactiva de Claude con aprobación explícita y generación de imágenes; automatizarla por cola rompería esa compuerta. Propuesta: integración **ligera** (el contenido de formato carrusel guarda la carpeta del proyecto y refleja su estado; AndyOS te da el arranque, pero no lo ejecuta ni lo aprueba).
-- **D. Tu plan de Claude** (Pro / Max 5x / Max 20x) para fijar límites reales.
+- **D. Planes (confirmado):** Claude Pro y ChatGPT Plus. Con Pro, la cuota es la misma que usas a mano en Claude Code y en claude.ai; el worker debe dejar margen para ti (límites bajos y pausa ante cualquier señal de límite).
 - **E. Respaldo `codex`:** ¿solo manual por tarea (recomendado) o automático?
 - **F. Alertas:** reutilizar el bot «AndyOS» de Telegram.
 
