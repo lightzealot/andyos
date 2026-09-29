@@ -113,4 +113,4 @@ Config mínima de claude usada: `--tools "" --strict-mcp-config --mcp-config '{"
 - Base de datos: SQLite (Drizzle). Arquitectura: opción A (web estática en Netlify + `andyos-api` en VPS + worker pull en homelab). Dominios: `os.` / `api.andresgomez.net`; n8n en `n8n.andresgomez.store`.
 - Proveedor IA principal: `claude -p` en configuración mínima. Respaldo: `codex exec`. (Confirmado 2026-09-28.)
 - Reglas del worker: sin `--bare`, sin `ANTHROPIC_API_KEY`/`ANTHROPIC_AUTH_TOKEN` en el entorno, directorio aislado, nunca bypassPermissions.
-- PENDIENTE de confirmar: aceptación explícita del riesgo de cambio de facturación/términos; aprobación final del informe de Fase 0.
+- Riesgo de facturación/términos de `claude -p` aceptado y informe de Fase 0 aprobado por Andrés (2026-09-28).
