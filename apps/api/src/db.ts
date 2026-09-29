@@ -51,6 +51,48 @@ CREATE TABLE IF NOT EXISTS reference_details (
   hook_pattern TEXT NOT NULL DEFAULT ''
 );
 
+CREATE TABLE IF NOT EXISTS ai_jobs (
+  id TEXT PRIMARY KEY,
+  task TEXT NOT NULL,
+  input TEXT NOT NULL,
+  target_id TEXT,
+  status TEXT NOT NULL CHECK (status IN ('queued','running','done','failed','canceled')),
+  requested_provider TEXT NOT NULL DEFAULT 'claude' CHECK (requested_provider IN ('claude','codex')),
+  provider TEXT,
+  model TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 3,
+  not_before TEXT,
+  lease_until TEXT,
+  output TEXT,
+  usage TEXT,
+  error_class TEXT,
+  error TEXT,
+  accepted_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  started_at TEXT,
+  finished_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_status ON ai_jobs (status, created_at);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_started ON ai_jobs (started_at);
+
+CREATE TABLE IF NOT EXISTS queue_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  paused INTEGER NOT NULL DEFAULT 0,
+  paused_reason TEXT,
+  paused_until TEXT,
+  max_per_day INTEGER NOT NULL DEFAULT 15,
+  max_per_week INTEGER NOT NULL DEFAULT 60,
+  concurrency INTEGER NOT NULL DEFAULT 1,
+  five_hour_pause_at REAL NOT NULL DEFAULT 0.8,
+  seven_day_pause_at REAL NOT NULL DEFAULT 0.85,
+  usage_snapshot TEXT,
+  usage_snapshot_at TEXT,
+  updated_at TEXT
+);
+INSERT OR IGNORE INTO queue_state (id) VALUES (1);
+
 CREATE TABLE IF NOT EXISTS item_links (
   from_id TEXT NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
   to_id TEXT NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,

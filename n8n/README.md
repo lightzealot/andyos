@@ -31,3 +31,6 @@ AndyOS envía `{"source":"andyos","payload":{}}` a `https://n8n.andresgomez.stor
 
 ### Clave de API de n8n para el panel (solo lectura)
 *Settings → n8n API → Create an API key*. Alcances: **`workflow:list`** y **`execution:list`** únicamente (sin escritura, sin reintentos, sin activar/desactivar). Verificado en la especificación OpenAPI que sirve tu propia instancia (`/api/v1/openapi.yml`). **Nota:** la API pública de tu versión no tiene endpoint para ejecutar workflows; por eso el disparo va por webhook.
+
+## `alertas-cola.json` — Avisos de la cola de IA a Telegram
+Webhook `POST /webhook/andyos-alerta` con Header Auth («AndyOS Alert Secret», *Name* `X-Webhook-Secret`, *Value* = `ALERT_WEBHOOK_SECRET`) → mensaje a tu chat con el bot de AndyOS. Pon tu chat id en el nodo *Avisar por Telegram*. Lo llama la API cuando la cola se pausa (cuota, sesión, facturación, uso alto).

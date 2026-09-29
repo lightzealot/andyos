@@ -10,6 +10,8 @@ import { registerIdeas } from './ideas.js';
 import { registerReferences } from './references.js';
 import { registerN8n, type N8nConfig } from './n8n.js';
 import { registerBackup } from './backup.js';
+import { registerAi } from './ai.js';
+import { makeNotifier } from './notify.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
 export interface Config {
@@ -25,6 +27,12 @@ export interface Config {
   n8n?: N8nConfig;
   /** Secreto del endpoint de respaldo; ausente = endpoint desactivado. */
   backupSecret?: string;
+  /** Cola de IA: sin workerToken el módulo no existe. */
+  workerToken?: string;
+  /** Webhook de n8n para avisos (Telegram). */
+  alert?: { url: string; secret: string };
+  /** Reloj inyectable (tests). */
+  now?: () => number;
 }
 
 const COOKIE = 'andyos_session';
@@ -73,7 +81,7 @@ export async function buildApp(db: Db, cfg: Config) {
   };
 
   app.addHook('preHandler', async (req, reply) => {
-    if (req.url.startsWith('/auth/login') || req.url === '/health' || req.url.startsWith('/webhooks/')) return;
+    if (req.url.startsWith('/auth/login') || req.url === '/health' || req.url.startsWith('/webhooks/') || req.url.startsWith('/worker/')) return;
     if (req.method === 'OPTIONS') return;
     if (!sessionValid(req.cookies[COOKIE], cfg.sessionSecret)) {
       return reply.code(401).send({ error: 'unauthorized' });
@@ -188,6 +196,9 @@ export async function buildApp(db: Db, cfg: Config) {
   registerReferences(app, db);
   registerN8n(app, cfg.n8n ?? null);
   registerBackup(app, db, cfg.backupSecret);
+  if (cfg.workerToken) {
+    registerAi(app, db, { workerToken: cfg.workerToken, notify: makeNotifier(cfg.alert), now: cfg.now ?? Date.now });
+  }
 
   return app;
 }
