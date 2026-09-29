@@ -15,6 +15,13 @@ Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin 
 | `DB_PATH` | `/data/andyos.db` (ya viene en el Dockerfile) | Ya incluida |
 | `HOST` / `PORT` | `0.0.0.0` / `8787` (ya vienen en el Dockerfile) | Ya incluidas |
 
+**Panel n8n (opcional; o defines las tres o ninguna, si defines solo algunas la API no arranca):**
+| Variable | Valor |
+|---|---|
+| `N8N_BASE_URL` | `https://n8n.andresgomez.store` (sin barra final; `http://` solo para localhost) |
+| `N8N_API_KEY` | Clave de n8n con alcances `workflow:list` y `execution:list` (solo lectura) |
+| `N8N_TRIGGER_SECRET` | `openssl rand -hex 32` (≥32). Mismo valor que la credencial Header Auth «AndyOS Trigger Secret» en n8n |
+
 Además en Easypanel: **volumen persistente montado en `/data`**, dominio `api.andresgomez.net` con HTTPS apuntando al puerto interno `8787`.
 
 ## 2. Web — Netlify (*Site configuration → Environment variables*)
@@ -30,6 +37,8 @@ Se incrusta **al compilar**: si la cambias hay que volver a desplegar. `NODE_VER
 |---|---|---|
 | «Telegram AndyOS» | Telegram API | Token de @BotFather |
 | «AndyOS Inbox Secret» | Header Auth | *Name* `X-Webhook-Secret`, *Value* = `INBOX_WEBHOOK_SECRET` |
+| «AndyOS Trigger Secret» | Header Auth | *Name* `X-Webhook-Secret`, *Value* = `N8N_TRIGGER_SECRET` (distinto del secreto del Inbox) |
+| Clave de API (Settings → n8n API) | API key | Alcances `workflow:list` y `execution:list`; su valor va en `N8N_API_KEY` |
 
 Y en el nodo *Telegram Trigger* → *Chat IDs*: tu chat id.
 

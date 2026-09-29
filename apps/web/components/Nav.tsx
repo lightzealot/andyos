@@ -5,6 +5,7 @@ const LINKS = [
   { href: '/', label: 'Pipeline' },
   { href: '/calendar/', label: 'Calendario' },
   { href: '/references/', label: 'Referencias' },
+  { href: '/n8n/', label: 'n8n' },
 ];
 
 export function Nav({ current }: { current: string }) {

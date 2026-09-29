@@ -68,3 +68,23 @@ export interface Reference {
   tags: string[];
   derived_count: number;
 }
+
+export interface N8nWorkflow {
+  id: string;
+  name: string;
+  active: boolean;
+  tags: string[];
+  last: { status: string; started_at: string | null; stopped_at: string | null } | null;
+  recent_errors: number;
+  triggerable: boolean;
+}
+
+export interface N8nExecution {
+  id: string;
+  workflow_id: string;
+  workflow_name: string;
+  status: string;
+  mode: string | null;
+  started_at: string | null;
+  stopped_at: string | null;
+}

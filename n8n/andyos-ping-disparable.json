@@ -1,0 +1,55 @@
+{
+  "name": "AndyOS - Ping de prueba (disparable)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "andyos-ping",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Webhook AndyOS",
+      "webhookId": "6f0f4b1e-3c55-4f6e-9a4e-a1d0c2b7e002",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR",
+          "name": "AndyOS Trigger Secret"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "name": "Recibido"
+    }
+  ],
+  "connections": {
+    "Webhook AndyOS": {
+      "main": [
+        [
+          {
+            "node": "Recibido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

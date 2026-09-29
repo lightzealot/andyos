@@ -31,5 +31,7 @@ Variables nuevas de la API: `INBOX_WEBHOOK_SECRET` (mín. 32 caracteres; el mism
 
 - **Referencias** (`/references/`): biblioteca con nota de *por qué funciona* y patrón de hook; «Crear contenido inspirado» genera una tarjeta en el pipeline enlazada a la referencia. La URL solo se guarda como enlace: el servidor nunca la visita.
 
+- **n8n** (`/n8n/`): workflows con estado y errores recientes, ejecuciones (filtro de errores) y botón «Disparar» para workflows habilitados. Clave de API de solo lectura; el disparo va por webhook porque la API pública no puede ejecutar workflows. Ver [`n8n/README.md`](n8n/README.md).
+
 ## Reglas de aprobación
 Ningún contenido pasa a Programado/Publicado/Analizado sin pulsar «Aprobar» en la etapa Aprobación; editar hook, guion, caption o enlaces de un contenido aprobado retira la aprobación.
