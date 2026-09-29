@@ -12,7 +12,7 @@ Guion: Hook → Contexto → Cambio → Aplicación/Demo → Resultado → CTA.
 
 Monorepo único `AndyOS`: `apps/web` (Next.js con export estático, en Netlify), `apps/api` (Fastify/Hono + Drizzle + SQLite, en VPS/Easypanel), `apps/worker` (homelab, Fase 2), `n8n/` (workflows JSON), `docs/`.
 - Frontend: `os.<dominio>` (Netlify). API: `api.<dominio>` (VPS). Mismo dominio padre para cookie httpOnly de sesión.
-- n8n: `n8n.andresgomez.net` (**[CONFIRMAR]** en tu primer prompt escribiste `.store`; el dominio correcto debe quedar en `.env`).
+- n8n: `n8n.andresgomez.store` (confirmado). Frontend `os.andresgomez.net`, API `api.andresgomez.net` (confirmados). Repo: github.com/lightzealot/andyos.
 - La API es el único punto expuesto: login, rate limit, CORS restringido, webhooks con HMAC.
 - Base de datos: SQLite en volumen persistente.
 Lo de abajo (diagrama v1) se mantiene salvo que "AndyOS" = `apps/web` + `apps/api`.
