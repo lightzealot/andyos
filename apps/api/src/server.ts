@@ -20,8 +20,10 @@ if (inboxSecret.length < 32) throw new Error('INBOX_WEBHOOK_SECRET debe tener al
 
 const n8nVars = ['N8N_BASE_URL', 'N8N_API_KEY', 'N8N_TRIGGER_SECRET'] as const;
 const n8nSet = n8nVars.filter((k) => process.env[k]);
+// Módulo opcional: una configuración incompleta desactiva el panel (con aviso) en vez de tumbar toda la API.
 if (n8nSet.length > 0 && n8nSet.length < n8nVars.length) {
-  throw new Error('Panel n8n: define las tres variables N8N_BASE_URL, N8N_API_KEY y N8N_TRIGGER_SECRET, o ninguna');
+  const missing = n8nVars.filter((k) => !process.env[k]).join(', ');
+  console.warn(`AVISO: panel n8n DESACTIVADO, falta(n): ${missing}. Define las tres variables o ninguna.`);
 }
 let n8n;
 if (n8nSet.length === n8nVars.length) {
