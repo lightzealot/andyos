@@ -255,16 +255,19 @@ export function claim(db: Db, providers: string[], now: number, notify: Notify):
       .get(...providers, iso(now)) as Row | undefined;
     if (!row) return { job: null, reason: 'empty' };
 
+    const def = TASKS[row.task as string];
+    const input = JSON.parse(row.input as string) as Record<string, unknown>;
+    const timeoutS = def.timeoutS?.(input) ?? JOB_TIMEOUT_S;
+    const leaseS = Math.max(LEASE_S, timeoutS + 60); // la reserva siempre cubre el tiempo pedido al worker + margen para devolver el resultado
     db.prepare(`UPDATE ai_jobs SET status = 'running', attempts = attempts + 1, lease_until = ?, provider = requested_provider,
                 started_at = COALESCE(started_at, ?), not_before = NULL, updated_at = ? WHERE id = ?`)
-      .run(iso(now + LEASE_S * 1000), iso(now), iso(now), row.id);
-    const def = TASKS[row.task as string];
-    const built = def.build(JSON.parse(row.input as string), getVoice(db));
+      .run(iso(now + leaseS * 1000), iso(now), iso(now), row.id);
+    const built = def.build(input, getVoice(db));
     return {
       job: {
         id: row.id as string, task: row.task as string, provider: row.requested_provider as string,
-        system: built.system, prompt: built.prompt, json_schema: def.outputSchema,
-        attempt: (row.attempts as number) + 1, timeout_s: JOB_TIMEOUT_S,
+        system: built.system, prompt: built.prompt, json_schema: def.schemaFor?.(input) ?? def.outputSchema,
+        attempt: (row.attempts as number) + 1, timeout_s: timeoutS,
       },
     };
   })();
@@ -283,7 +286,7 @@ export interface JobResult {
 export function complete(db: Db, id: string, res: JobResult, now: number, notify: Notify) {
   const job = requireRunning(db, id);
   const def = TASKS[job.task as string];
-  if (!def.validateOutput(res.output)) {
+  if (!def.validateOutput(res.output, job.input)) {
     // Salida que no cumple el esquema: fallo permanente (no se reintenta a ciegas)
     return fail(db, id, { error_class: 'permanent', error: 'La salida no cumple el esquema esperado' }, now, notify);
   }

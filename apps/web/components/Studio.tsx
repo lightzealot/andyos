@@ -6,9 +6,13 @@ import {
 } from './StudioParts';
 import { VoicePanel } from './VoicePanel';
 
-type Tab = 'hooks' | 'script' | 'caption' | 'voice';
-const TABS: [Tab, string][] = [['hooks', 'Hooks'], ['script', 'Guion'], ['caption', 'Caption'], ['voice', 'Mi voz']];
-const TASK_OF: Record<Exclude<Tab, 'voice'>, Job['task']> = { hooks: 'hooks', script: 'script', caption: 'caption' };
+type Tab = 'pack' | 'hooks' | 'script' | 'caption' | 'voice';
+const TABS: [Tab, string][] = [['pack', 'Paquete'], ['hooks', 'Hooks'], ['script', 'Guion'], ['caption', 'Caption'], ['voice', 'Mi voz']];
+const TASK_OF: Record<Exclude<Tab, 'voice'>, Job['task']> = { pack: 'pack', hooks: 'hooks', script: 'script', caption: 'caption' };
+const MAX_VERSIONS = 5;
+const SECTIONS = [['hook', 'Hook'], ['script', 'Guion'], ['caption', 'Caption']] as const;
+const PACK_PARTS = SCRIPT_PARTS.filter(([k]) => k !== 'hook');
+interface PackVersion { angle: string; hook: string; caption: string; [k: string]: string }
 const CAPTION_LABEL: Record<string, string> = { corta: 'Corta', gancho: 'Gancho', cta: 'CTA directo' };
 const ALL_PARTS = SCRIPT_PARTS.map(([k]) => k as string);
 
@@ -18,7 +22,7 @@ const actionable = (j: Job) => !j.accepted_at && !j.dismissed_at && j.status !==
 export function Studio() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('hooks');
+  const [tab, setTab] = useState<Tab>('pack');
   const [queue, setQueue] = useState<QueueInfo | false | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [notice, setNotice] = useState('');
@@ -28,6 +32,8 @@ export function Studio() {
   const [pickHook, setPickHook] = useState<Record<string, number>>({});
   const [pickCaption, setPickCaption] = useState<Record<string, number>>({});
   const [pickParts, setPickParts] = useState<Record<string, string[]>>({});
+  const [versions, setVersions] = useState(3);
+  const [pickPack, setPickPack] = useState<Record<string, { version?: number; sections: string[] }>>({});
 
   const item = useMemo(() => items?.find((i) => i.id === selectedId) ?? null, [items, selectedId]);
 
@@ -49,7 +55,7 @@ export function Studio() {
   }, []);
   const loadJobs = useCallback(async (id: string) => {
     try {
-      setJobs((await api<{ jobs: Job[] }>(`/ai/jobs?target_id=${id}&task=hooks,script,caption,humanize&limit=60`)).jobs);
+      setJobs((await api<{ jobs: Job[] }>(`/ai/jobs?target_id=${id}&task=pack,hooks,script,caption,humanize&limit=60`)).jobs);
     } catch { setJobs([]); }
   }, []);
   const refreshItem = useCallback(async (id: string) => {
@@ -119,11 +125,19 @@ export function Studio() {
     <div className="space-y-2">
       <input className={inputCls} placeholder="Tema o enfoque (opcional)" aria-label="Tema o enfoque" value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={500} />
       <input className={inputCls} placeholder="Ángulo (opcional): confesión, error común…" aria-label="Ángulo" value={angle} onChange={(e) => setAngle(e.target.value)} maxLength={300} />
+      {task === 'pack' && (
+        <label className="flex items-center gap-2 text-sm text-zinc-300">Versiones
+          <select className={`${inputCls} w-20`} aria-label="Número de versiones" value={versions} onChange={(e) => setVersions(Number(e.target.value))}>
+            {Array.from({ length: MAX_VERSIONS }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <span className="text-xs text-zinc-500">una sola llamada; hasta {MAX_VERSIONS}</span>
+        </label>
+      )}
       <button
         disabled={busy || !canAsk} data-generate={task}
-        onClick={() => generate(TASK_OF[task], { ...(topic.trim() && { topic: topic.trim() }), ...(angle.trim() && { angle: angle.trim() }) })}
+        onClick={() => generate(TASK_OF[task], { ...(topic.trim() && { topic: topic.trim() }), ...(angle.trim() && { angle: angle.trim() }), ...(task === 'pack' && { versions }) })}
         className={btnPrimary}
-      >✨ {label}</button>
+      >✨ {task === 'pack' ? `Generar paquete (${versions} ${versions === 1 ? 'versión' : 'versiones'})` : label}</button>
     </div>
   );
 
@@ -185,7 +199,7 @@ export function Studio() {
       {items === null ? <p className="text-zinc-400">Cargando…</p>
         : items.length === 0 ? <p className="text-sm text-zinc-500">No hay contenido en el Pipeline. Crea una idea y pásala al Pipeline para trabajarla aquí.</p>
         : item && (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
             <section className={`${box} space-y-3`}>
               <div className="flex gap-1">
                 {TABS.map(([t, l]) => (
@@ -193,6 +207,43 @@ export function Studio() {
                     className={`rounded-md px-3 py-1 text-sm ${tab === t ? 'bg-zinc-800 font-semibold' : 'text-zinc-400'}`}>{l}</button>
                 ))}
               </div>
+
+              {tab === 'pack' && panel('pack', 'Generar paquete', (job) => {
+                const out = job.output as { versions: PackVersion[] };
+                const pk = pickPack[job.id] ?? { sections: SECTIONS.map(([k]) => k) as string[] };
+                const setPk = (p: Partial<typeof pk>) => setPickPack({ ...pickPack, [job.id]: { ...pk, ...p } });
+                const toggle = (k: string) => setPk({ sections: pk.sections.includes(k) ? pk.sections.filter((x) => x !== k) : [...pk.sections, k] });
+                return (
+                  <div className="space-y-3" data-pack>
+                    {out.versions.map((v, i) => (
+                      <label key={i} data-version={i} className={`block cursor-pointer space-y-1.5 rounded-lg border p-3 text-sm ${pk.version === i ? 'border-orange-500 bg-orange-500/10' : 'border-zinc-800'}`}>
+                        <span className="flex items-center gap-2">
+                          <input type="radio" name={`pack-${job.id}`} checked={pk.version === i} onChange={() => setPk({ version: i })} aria-label={`Versión ${i + 1}`} />
+                          <b>Versión {i + 1}</b><span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">{v.angle}</span>
+                        </span>
+                        <span className="block"><span className="text-xs text-zinc-500">Hook</span><br /><Marked text={v.hook} /></span>
+                        <details className="text-zinc-300">
+                          <summary className="cursor-pointer text-xs text-zinc-500">Guion (5 partes)</summary>
+                          <span className="mt-1 block space-y-1">
+                            {PACK_PARTS.map(([k, l]) => <span key={k} className="block"><span className="text-xs text-zinc-500">{l}: </span><Marked text={v[k]} /></span>)}
+                          </span>
+                        </details>
+                        <span className="block"><span className="text-xs text-zinc-500">Caption</span><br /><span className="whitespace-pre-line"><Marked text={v.caption} /></span></span>
+                      </label>
+                    ))}
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                      <span className="text-xs text-zinc-500">Aplicar:</span>
+                      {SECTIONS.map(([k, l]) => (
+                        <label key={k} className="flex items-center gap-1"><input type="checkbox" checked={pk.sections.includes(k)} onChange={() => toggle(k)} aria-label={`Aplicar ${l}`} />{l}</label>
+                      ))}
+                    </div>
+                    <button disabled={busy || pk.version === undefined || pk.sections.length === 0} data-use className={btnPrimary}
+                      onClick={() => decide(job, true, { version: pk.version, sections: pk.sections })}>
+                      {pk.version === undefined ? 'Elige una versión' : `Usar la versión ${pk.version + 1}`}
+                    </button>
+                  </div>
+                );
+              })}
 
               {tab === 'hooks' && panel('hooks', 'Generar 5 hooks', (job) => {
                 const out = job.output as { hooks: { text: string; angle: string }[] };

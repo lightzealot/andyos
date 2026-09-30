@@ -100,7 +100,7 @@ export interface Issue { type: string; detail: string; field?: string }
 /** Un trabajo de IA (borrador). `output` depende de la tarea. */
 export interface Job {
   id: string;
-  task: 'hooks' | 'script' | 'caption' | 'humanize' | 'tag_idea';
+  task: 'hooks' | 'script' | 'caption' | 'pack' | 'humanize' | 'tag_idea';
   status: 'queued' | 'running' | 'done' | 'failed' | 'canceled';
   input: Record<string, unknown>;
   output: unknown;
