@@ -108,13 +108,21 @@ export interface Job {
   provider: string | null;
   model: string | null;
   created_at: string;
+  target_id?: string | null;
+  attempts?: number;
+  error?: string | null;
+  usage?: Record<string, unknown> | null;
+  started_at?: string | null;
+  finished_at?: string | null;
 }
 
 export interface QueueInfo {
   state: {
     paused: boolean; paused_reason: string | null; paused_until: string | null; auto_tag: boolean;
-    max_per_day: number; max_per_week: number;
-    usage_snapshot: { five_hour?: { utilization: number }; seven_day?: { utilization: number } } | null;
+    max_per_day: number; max_per_week: number; concurrency?: number;
+    five_hour_pause_at?: number; seven_day_pause_at?: number;
+    usage_snapshot: { five_hour?: { utilization: number; resetsAt: number }; seven_day?: { utilization: number; resetsAt: number } } | null;
+    usage_snapshot_at?: string | null;
   };
   counters: { day: number; week: number; queued: number; running: number };
 }

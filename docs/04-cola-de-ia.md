@@ -57,3 +57,12 @@ Aceptar es la **acción humana** que aplica el borrador (p. ej. fusiona etiqueta
 
 ## Detección de citas inventadas
 Prueba real en producción: el guion incluyó *«un seguidor que me escribe "oye, no me llegó nada"»*, una cita que no consta en tus datos. `lint.ts` marca ahora como defecto fuerte (`invented_quote`) toda cita de 4+ palabras entre comillas que no aparezca en el título, las notas, el tema, los hechos o tus ejemplos; las palabras clave cortas de los CTA («AUTOMATIZA») no cuentan. Provoca la segunda pasada, con la instrucción de quitarla o escribir `[VIVENCIA]`. Sigue siendo una red parcial: una inferencia plausible sin comillas puede pasar, por lo que la revisión humana es obligatoria.
+
+## Módulo 2.5: panel de la cola (`/queue/`, «Cola IA» en el menú)
+Solo web: usa `GET/PATCH /ai/queue`, `GET /ai/jobs` y `POST /ai/jobs/:id/cancel`; la API no cambia. Se refresca cada 15 s.
+- **Estado y pausa:** «Cola activa/pausada», con el motivo en claro (manual, cuota 5 h/semanal, límite de Claude, sesión, facturación) y si se **reanuda sola** o solo a mano (`auth`/`billing`/manual). Botón Pausar/Reanudar.
+- **Cuota de Claude:** barras de la ventana de 5 h y de la semana con la marca del umbral de pausa y la hora de reinicio. Un dato ya vencido se muestra como «sin dato vigente», no como un porcentaje viejo. Es la cuota compartida de tu suscripción (la mide el worker).
+- **Contadores:** 24 h y 7 días frente a su límite, en cola y ejecutando. Interruptor «Etiquetar ideas nuevas con IA» (`auto_tag`).
+- **Límites:** máximo por 24 h / 7 días y umbrales de pausa (%), con los rangos que valida la API.
+- **Historial** (50 más recientes, filtro por estado): tarea, estado, proveedor y modelo reales, intentos, duración, tokens si el worker los reporta, «segunda pasada», aceptado/ignorado y la clase de error; «Detalle» muestra el error y la entrada. Solo se cancelan los trabajos en cola.
+- Prueba: e2e con navegador real (estado, pausa/reanudar, medidores, historial, filtro, cancelar, límites válidos e inválidos, auto_tag, móvil). El menú ganó una séptima entrada y ahora hace salto de línea en pantallas estrechas.
