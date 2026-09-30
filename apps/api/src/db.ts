@@ -133,6 +133,8 @@ export function openDb(path: string): Db {
   ensureColumn(db, 'queue_state', 'auto_tag', 'INTEGER NOT NULL DEFAULT 1');
   ensureColumn(db, 'ai_jobs', 'dismissed_at', 'TEXT');
   ensureColumn(db, 'ai_jobs', 'review', 'TEXT');
+  ensureColumn(db, 'content_details', 'carousel_folder', 'TEXT');
+  ensureColumn(db, 'content_details', 'carousel_state', 'TEXT');
   seedVoice(db);
   return db;
 }

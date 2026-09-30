@@ -28,6 +28,8 @@ export interface Item {
   scheduled_at: string | null;
   approved_at: string | null;
   ai_generated: boolean;
+  carousel_folder: string | null;
+  carousel_state: string | null;
   updated_at: string;
 }
 

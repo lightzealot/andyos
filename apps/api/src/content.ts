@@ -17,6 +17,8 @@ export interface NewContent {
   published_url?: string | null;
   asset_links?: string[];
   cta_keyword?: string | null;
+  carousel_folder?: string | null;
+  carousel_state?: string | null;
 }
 
 export function insertContent(db: Db, d: NewContent): string {
@@ -27,12 +29,12 @@ export function insertContent(db: Db, d: NewContent): string {
                 VALUES (?, 'content', ?, ?, ?, ?, ?, ?)`)
       .run(id, d.title, d.status, d.notes, JSON.stringify(d.tags), now, now);
     db.prepare(`INSERT INTO content_details (work_item_id, platform, format, pillar, hook, script, caption,
-                scheduled_at, published_at, published_url, asset_links, cta_keyword)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                scheduled_at, published_at, published_url, asset_links, cta_keyword, carousel_folder, carousel_state)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .run(id, d.platform ?? null, d.format ?? null, d.pillar ?? null, d.hook ?? '',
         JSON.stringify(d.script ?? {}), d.caption ?? '', d.scheduled_at ?? null,
         d.published_at ?? null, d.published_url ?? null, JSON.stringify(d.asset_links ?? []),
-        d.cta_keyword ?? null);
+        d.cta_keyword ?? null, d.carousel_folder ?? null, d.carousel_state ?? null);
   })();
   return id;
 }
