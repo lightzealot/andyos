@@ -37,6 +37,13 @@ Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin 
 | `ALERT_WEBHOOK_URL` | `https://n8n.andresgomez.store/webhook/andyos-alerta` (https obligatorio) |
 | `ALERT_WEBHOOK_SECRET` | `openssl rand -hex 32`. Mismo valor que la credencial Header Auth «AndyOS Alert Secret» en n8n. Las dos `ALERT_*` van juntas o ninguna |
 
+**Resumen diario por Telegram (opcional, necesita `ALERT_WEBHOOK_*`):**
+
+| Variable | Valor |
+|---|---|
+| `DIGEST_TZ` | Tu zona horaria IANA, p. ej. `America/Mexico_City`. **Sin ella el resumen no existe** (no adivino tu zona). Un valor inválido impide arrancar la API |
+| `DIGEST_HOUR` | Hora local (0–23) a partir de la cual se envía; defecto `9` |
+
 Además en Easypanel: **volumen persistente montado en `/data`**, dominio `api.andresgomez.store` con HTTPS. **Puerto del dominio: `80`**: Easypanel inyecta `PORT=80` en el contenedor y la app escucha en ese puerto (verifícalo en el log: `andyos-api escuchando en :80`). Si el puerto del dominio no coincide con el del log, da 502.
 
 ## 2. Web — Netlify (*Site configuration → Environment variables*)

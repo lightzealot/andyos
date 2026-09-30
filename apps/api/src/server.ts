@@ -2,6 +2,8 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { buildApp } from './app.js';
 import { openDb } from './db.js';
+import { startDigest, validTz } from './digest.js';
+import { makeNotifier } from './notify.js';
 
 function required(name: string): string {
   const v = process.env[name];
@@ -60,7 +62,18 @@ if (alertVars.every(Boolean)) {
   alert = { url, secret: process.env.ALERT_WEBHOOK_SECRET! };
 }
 
-const app = await buildApp(openDb(dbPath), {
+let digest;
+if (process.env.DIGEST_TZ) {
+  const tz = process.env.DIGEST_TZ;
+  const hour = Number(process.env.DIGEST_HOUR ?? 9);
+  if (!validTz(tz)) throw new Error('DIGEST_TZ no es una zona horaria válida (ej. America/Mexico_City)');
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) throw new Error('DIGEST_HOUR debe ser un entero de 0 a 23');
+  if (!alert) console.warn('AVISO: resumen diario sin ALERT_WEBHOOK_*: se puede previsualizar pero no se enviará.');
+  digest = { tz, hour };
+}
+
+const db = openDb(dbPath);
+const app = await buildApp(db, {
   password: required('ANDYOS_PASSWORD'),
   sessionSecret: secret,
   webOrigin: required('WEB_ORIGIN'),
@@ -72,7 +85,9 @@ const app = await buildApp(openDb(dbPath), {
   backupSecret,
   workerToken,
   alert,
+  digest,
 });
+if (digest && alert) startDigest(db, digest, makeNotifier(alert));
 
 const port = Number(process.env.PORT ?? 8787);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });

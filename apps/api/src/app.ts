@@ -13,6 +13,7 @@ import { registerBackup } from './backup.js';
 import { registerAi } from './ai.js';
 import { registerVoice } from './voice-routes.js';
 import { makeNotifier } from './notify.js';
+import { buildDigest, type DigestCfg } from './digest.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
 export interface Config {
@@ -32,6 +33,8 @@ export interface Config {
   workerToken?: string;
   /** Webhook de n8n para avisos (Telegram). */
   alert?: { url: string; secret: string };
+  /** Resumen diario por Telegram (zona y hora). Sin esto, no existe. */
+  digest?: DigestCfg;
   /** Reloj inyectable (tests). */
   now?: () => number;
 }
@@ -198,6 +201,20 @@ export async function buildApp(db: Db, cfg: Config) {
   registerReferences(app, db);
   registerN8n(app, cfg.n8n ?? null);
   registerBackup(app, db, cfg.backupSecret);
+  if (cfg.digest) {
+    const { tz } = cfg.digest;
+    const notify = makeNotifier(cfg.alert);
+    const nowMs = cfg.now ?? Date.now;
+    // Vista previa: lo que se enviaría ahora. No envía ni marca nada.
+    app.get('/digest', async () => ({ text: buildDigest(db, nowMs(), tz), hour: cfg.digest!.hour, tz }));
+    // Envío de prueba a Telegram (no cuenta como el resumen del día).
+    app.post('/digest/send', async (_req, reply) => {
+      if (!cfg.alert) return reply.code(409).send({ error: 'alerts_not_configured' });
+      const text = buildDigest(db, nowMs(), tz) ?? 'Resumen del día\n\nNada pendiente. (Mensaje de prueba)';
+      notify({ type: 'digest', message: text });
+      return { ok: true, text };
+    });
+  }
   registerVoice(app, db, cfg.now ?? Date.now);
   if (cfg.workerToken) {
     registerAi(app, db, { workerToken: cfg.workerToken, notify: makeNotifier(cfg.alert), now: cfg.now ?? Date.now });
