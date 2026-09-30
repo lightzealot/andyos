@@ -40,7 +40,7 @@ Worker (máquina con el CLI) ──HTTPS saliente──> API: claim → ejecuta 
 | 2.2 | **Worker** | Adaptador `claude` + adaptador `codex`; sandbox; servicio (systemd o Docker); README | Dónde corre |
 | 2.3 | **Primera tarea: etiquetar ideas** | El Inbox encola al recibir una idea; sugerencias visibles con "Aceptar" | — |
 | 2.4 | **Estudio de guiones** | Hook → Contexto → Cambio → Aplicación → Resultado → CTA, hooks y caption; ejemplos de tu voz como contexto (sin RAG) | 5–10 textos tuyos reales |
-| 2.5 | **Panel de la cola** | Estado, pausa/reanudar, contadores de uso, historial con proveedor/modelo | — |
+| 2.5 | **Panel de la cola** | Estado, pausa/reanudar, contadores de uso, historial con proveedor/modelo | Hecho (ver `04-cola-de-ia.md`) |
 | 2.6 | **CarruselOS (ligero)** | Ver decisión C | Tu OK |
 Opcionales posteriores, **solo si lo pides**: repurposing con transcripción y RAG con Qdrant.
 

@@ -6,12 +6,13 @@ const LINKS = [
   { href: '/calendar/', label: 'Calendario' },
   { href: '/studio/', label: 'Estudio' },
   { href: '/references/', label: 'Referencias' },
+  { href: '/queue/', label: 'Cola IA' },
   { href: '/n8n/', label: 'n8n' },
 ];
 
 export function Nav({ current }: { current: string }) {
   return (
-    <nav className="flex items-center gap-1">
+    <nav className="flex min-w-0 flex-wrap items-center gap-1">
       {LINKS.map((l) => (
         <Link
           key={l.href} href={l.href}
