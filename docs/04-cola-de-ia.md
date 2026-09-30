@@ -74,3 +74,15 @@ Decisión C del plan, en su versión mínima. **AndyOS no ejecuta, aprueba ni pu
 - **Independiente de la aprobación:** cambiar carpeta o estado no aprueba, no retira una aprobación ya dada y no salta la compuerta de Programado/Publicado (409 igual que antes). El «aprobado» de CarruselOS y la aprobación humana de AndyOS son cosas distintas.
 - **Web:** en el detalle de una tarjeta con formato **carousel** aparece la sección «CarruselOS»: carpeta (con «Sugerir carpeta» = `AAAA-MM-DD-titulo`), estado y «Copiar prompt de arranque», un texto para pegar en Claude Code dentro de CarruselOS con el tema, la carpeta y el material que ya tengas (hook, guion, caption, notas). Ese prompt pide expresamente preguntar lo que falte y no generar imágenes ni publicar sin tu OK. El tablero muestra una insignia 🎠 con el estado.
 - **Fuera de alcance (a propósito):** sincronizar el estado leyendo `brief.md` desde el Mac mini con el worker. Sería una vía nueva (lectura local + endpoint); solo si lo pides.
+
+## Resumen diario por Telegram
+Reutiliza el aviso que ya existe (API → webhook `andyos-alerta` de n8n → tu Telegram); **no hay workflow nuevo**. Se activa solo con `DIGEST_TZ` (y opcionalmente `DIGEST_HOUR`, defecto 9); ver `docs/variables-de-entorno.md`.
+- **Qué avisa** (solo si hay algo; si no, no manda nada):
+  1. ⏰ Tarjetas de contenido **sin programar** cuya fecha objetivo ya venció o vence en ≤ 2 días.
+  2. 📝 Tarjetas **en Aprobación sin aprobar** desde hace ≥ 3 días.
+  3. 📅 Tarjetas **Programadas** cuya fecha ya pasó (por si olvidaste marcarlas como publicadas).
+  Máximo 5 líneas por sección («… y N más»), ordenadas por urgencia. Ignora archivadas e ideas.
+- **Una vez al día:** cuando pasa la hora local configurada; el día se guarda en la base (`app_meta`), así que reiniciar la API no duplica. El día se marca **antes** de enviar: si el aviso se pierde, no se reintenta ese día (el aviso es de mejor esfuerzo, como los de la cola).
+- **Rutas (sesión):** `GET /digest` muestra lo que se enviaría ahora (no envía ni marca nada); `POST /digest/send` manda un mensaje de prueba a Telegram (no cuenta como el del día; si no hay nada pendiente manda un texto de prueba). Ambas existen solo si `DIGEST_TZ` está definida.
+- **Límite conocido:** el nodo de Telegram antepone «AndyOS: » al mensaje y lo envía como texto plano; los títulos de tus tarjetas viajan tal cual.
+- Pruebas: 16 tests (zona horaria y día local, cada categoría, límites, una vez al día, reinicio, día vacío, rutas y secreto) con 3 mutaciones detectadas, más una prueba con el proceso real contra un webhook falso.

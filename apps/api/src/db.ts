@@ -94,6 +94,11 @@ CREATE TABLE IF NOT EXISTS queue_state (
 );
 INSERT OR IGNORE INTO queue_state (id) VALUES (1);
 
+CREATE TABLE IF NOT EXISTS app_meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS voice_profile (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   guide TEXT NOT NULL,
