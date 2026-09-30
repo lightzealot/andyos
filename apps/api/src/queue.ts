@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from './db.js';
 import type { Notify } from './notify.js';
-import { TASKS } from './tasks.js';
+import { TASKS, TaskError } from './tasks.js';
 
 export const LEASE_S = 180;        // tiempo que un trabajo reclamado se reserva al worker
 export const JOB_TIMEOUT_S = 120;  // tiempo máximo que se le pide al worker por trabajo
@@ -19,7 +19,7 @@ export class QueueError extends Error {
 
 /* ---------- estado y ajustes ---------- */
 export interface QueueState {
-  paused: boolean; paused_reason: string | null; paused_until: string | null;
+  paused: boolean; paused_reason: string | null; paused_until: string | null; auto_tag: boolean;
   max_per_day: number; max_per_week: number; concurrency: number;
   five_hour_pause_at: number; seven_day_pause_at: number;
   usage_snapshot: UsageSnapshot | null; usage_snapshot_at: string | null;
@@ -33,6 +33,7 @@ export function getState(db: Db): QueueState {
   const r = db.prepare('SELECT * FROM queue_state WHERE id = 1').get() as Record<string, unknown>;
   return {
     paused: Boolean(r.paused), paused_reason: r.paused_reason as string | null, paused_until: r.paused_until as string | null,
+    auto_tag: Boolean(r.auto_tag),
     max_per_day: r.max_per_day as number, max_per_week: r.max_per_week as number, concurrency: r.concurrency as number,
     five_hour_pause_at: r.five_hour_pause_at as number, seven_day_pause_at: r.seven_day_pause_at as number,
     usage_snapshot: r.usage_snapshot ? JSON.parse(r.usage_snapshot as string) : null,
@@ -51,7 +52,7 @@ export function counters(db: Db, now: number) {
 }
 
 export interface Settings {
-  paused?: boolean; max_per_day?: number; max_per_week?: number; concurrency?: number;
+  paused?: boolean; auto_tag?: boolean; max_per_day?: number; max_per_week?: number; concurrency?: number;
   five_hour_pause_at?: number; seven_day_pause_at?: number;
 }
 export function updateSettings(db: Db, patch: Settings, now: number): QueueState {
@@ -67,9 +68,9 @@ export function updateSettings(db: Db, patch: Settings, now: number): QueueState
   const reason = patch.paused === true && !cur.paused ? 'manual' : patch.paused === false ? null : cur.paused_reason;
   const until = patch.paused === undefined ? cur.paused_until : null;
   db.prepare(`UPDATE queue_state SET paused = ?, paused_reason = ?, paused_until = ?, max_per_day = ?, max_per_week = ?,
-              concurrency = ?, five_hour_pause_at = ?, seven_day_pause_at = ?, updated_at = ? WHERE id = 1`)
+              concurrency = ?, five_hour_pause_at = ?, seven_day_pause_at = ?, updated_at = ?, auto_tag = ? WHERE id = 1`)
     .run(paused ? 1 : 0, paused ? reason : null, paused ? until : null, next.max_per_day, next.max_per_week,
-      next.concurrency, next.five_hour_pause_at, next.seven_day_pause_at, iso(now));
+      next.concurrency, next.five_hour_pause_at, next.seven_day_pause_at, iso(now), next.auto_tag ? 1 : 0);
   return getState(db);
 }
 
@@ -155,14 +156,49 @@ export function cancel(db: Db, id: string, now: number) {
   if (!r.changes) throw new QueueError(getJob(db, id) ? 'conflict' : 'not_found');
 }
 
-export function accept(db: Db, id: string, now: number) {
+export function accept(db: Db, id: string, now: number, selection?: unknown) {
   const job = getJob(db, id);
   if (!job) throw new QueueError('not_found');
-  if (job.status !== 'done' || job.accepted_at) throw new QueueError('conflict');
+  if (job.status !== 'done' || job.accepted_at || job.dismissed_at) throw new QueueError('conflict');
+  const def = TASKS[job.task as string];
+  let output = job.output;
+  if (selection !== undefined) {
+    if (!def?.select) throw new QueueError('invalid');
+    try { output = def.select(job.output, selection); } catch (e) { throw e instanceof TaskError ? new QueueError('invalid') : e; }
+  }
   db.transaction(() => {
-    TASKS[job.task as string]?.apply(db, job.input as Record<string, unknown>, job.output, iso(now));
+    def?.apply(db, job.input as Record<string, unknown>, output, iso(now));
     db.prepare('UPDATE ai_jobs SET accepted_at = ?, updated_at = ? WHERE id = ?').run(iso(now), iso(now), id);
   })();
+}
+
+/** Descartar un borrador: el humano dice "no". No tiene efecto sobre los datos. */
+export function dismiss(db: Db, id: string, now: number) {
+  const r = db.prepare("UPDATE ai_jobs SET dismissed_at = ?, updated_at = ? WHERE id = ? AND status = 'done' AND accepted_at IS NULL AND dismissed_at IS NULL")
+    .run(iso(now), iso(now), id);
+  if (!r.changes) throw new QueueError(getJob(db, id) ? 'conflict' : 'not_found');
+}
+
+export interface Suggestion { job_id: string; status: 'queued' | 'running' | 'done' | 'failed'; tags?: string[]; error_class?: string }
+
+/** Última sugerencia de etiquetas por idea; solo devuelve lo accionable (pendiente, listo sin decidir, o fallido). */
+export function tagSuggestions(db: Db, ideaIds: string[]): Map<string, Suggestion> {
+  const out = new Map<string, Suggestion>();
+  if (!ideaIds.length) return out;
+  const rows = db.prepare(`SELECT * FROM ai_jobs WHERE task = 'tag_idea' AND target_id IN (${ideaIds.map(() => '?').join(',')})
+                           ORDER BY created_at DESC`).all(...ideaIds) as Row[];
+  const seen = new Set<string>();
+  for (const r of rows) {
+    const t = r.target_id as string;
+    if (seen.has(t)) continue; // solo el más reciente
+    seen.add(t);
+    const status = r.status as string;
+    if (status === 'queued' || status === 'running') out.set(t, { job_id: r.id as string, status });
+    else if (status === 'done' && !r.accepted_at && !r.dismissed_at) {
+      out.set(t, { job_id: r.id as string, status: 'done', tags: (JSON.parse(r.output as string) as { tags: string[] }).tags });
+    } else if (status === 'failed') out.set(t, { job_id: r.id as string, status: 'failed', error_class: r.error_class as string });
+  }
+  return out;
 }
 
 /* ---------- lado del worker ---------- */

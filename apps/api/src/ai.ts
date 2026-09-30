@@ -4,7 +4,7 @@ import type { Db } from './db.js';
 import { passwordMatches } from './auth.js';
 import type { Notify } from './notify.js';
 import {
-  accept, cancel, claim, complete, counters, enqueue, ERROR_CLASSES, fail, getJob, getState, listJobs,
+  accept, cancel, dismiss, claim, complete, counters, enqueue, ERROR_CLASSES, fail, getJob, getState, listJobs,
   QueueError, recordUsage, updateSettings,
 } from './queue.js';
 import { TASKS, TaskError } from './tasks.js';
@@ -35,7 +35,7 @@ export function registerAi(app: FastifyInstance, db: Db, opts: { workerToken: st
 
   app.patch('/ai/queue', async (req, reply) => {
     const b = z.object({
-      paused: z.boolean(), max_per_day: z.number(), max_per_week: z.number(), concurrency: z.number(),
+      paused: z.boolean(), auto_tag: z.boolean(), max_per_day: z.number(), max_per_week: z.number(), concurrency: z.number(),
       five_hour_pause_at: z.number(), seven_day_pause_at: z.number(),
     }).partial().strict().safeParse(req.body);
     if (!b.success) return reply.code(400).send({ error: 'invalid' });
@@ -73,9 +73,15 @@ export function registerAi(app: FastifyInstance, db: Db, opts: { workerToken: st
   app.post('/ai/jobs/:id/accept', async (req, reply) => {
     try {
       const id = (req.params as { id: string }).id;
-      accept(db, id, now());
+      // Cuerpo opcional: aceptar solo una parte del borrador (p. ej. {"tags":["n8n"]})
+      accept(db, id, now(), req.body && Object.keys(req.body as object).length ? req.body : undefined);
       return { job: getJob(db, id) };
     } catch (e) { return send(reply, e); }
+  });
+
+  // Rechazo humano del borrador: no cambia ningún dato.
+  app.post('/ai/jobs/:id/dismiss', async (req, reply) => {
+    try { dismiss(db, (req.params as { id: string }).id, now()); return { ok: true }; } catch (e) { return send(reply, e); }
   });
 
   /* ---------- worker (Bearer) ---------- */

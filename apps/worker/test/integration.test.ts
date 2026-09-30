@@ -36,6 +36,8 @@ async function setup() {
   const login = await app.inject({ method: 'POST', url: '/auth/login', payload: { password: 'pw' } });
   const cookie = (login.headers['set-cookie'] as string).split(';')[0];
   const user = (method: 'GET' | 'POST' | 'PATCH', url: string, payload?: object) => app.inject({ method, url, payload, headers: { cookie } });
+  // Estas pruebas encolan a mano: sin el etiquetado automático de ideas nuevas.
+  await user('PATCH', '/ai/queue', { auto_tag: false });
   const cfg: Config = makeCfg({ apiUrl: `http://127.0.0.1:${port}`, token: TOKEN });
   const ideaJob = async (text = 'Reel sobre n8n y la API de Meta', provider?: string) => {
     const idea = (await user('POST', '/ideas', { text })).json().id as string;

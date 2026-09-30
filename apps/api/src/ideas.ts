@@ -5,6 +5,7 @@ import type { Db } from './db.js';
 import { passwordMatches } from './auth.js';
 import { FORMATS, PLATFORMS } from './model.js';
 import { insertContent } from './content.js';
+import { enqueue, getState, tagSuggestions } from './queue.js';
 
 export const IDEA_STATUSES = ['nueva', 'descartada', 'promovida'] as const;
 
@@ -27,7 +28,8 @@ export const titleFrom = (text: string): string => {
   return line.length > 120 ? `${line.slice(0, 117)}…` : line;
 };
 
-export function registerIdeas(app: FastifyInstance, db: Db, inboxSecret: string) {
+/** `ai` presente = la cola de IA está habilitada: cada idea nueva pide sus etiquetas (borrador). */
+export function registerIdeas(app: FastifyInstance, db: Db, inboxSecret: string, ai?: { now: () => number }) {
   const getIdea = (id: string) => {
     const r = db.prepare(`${SELECT} AND w.id = ?`).get(id) as Row | undefined;
     return r ? parse(r) : undefined;
@@ -43,6 +45,10 @@ export function registerIdeas(app: FastifyInstance, db: Db, inboxSecret: string)
       db.prepare('INSERT INTO idea_details (work_item_id, source, source_id) VALUES (?, ?, ?)')
         .run(id, source, sourceId);
     })();
+    // Etiquetado automático: mejor esfuerzo. Que la IA esté caída, pausada o llena NUNCA impide guardar la idea.
+    if (ai && getState(db).auto_tag) {
+      try { enqueue(db, { task: 'tag_idea', input: { idea_id: id } }, ai.now()); } catch { /* cola llena u otro problema: se ignora */ }
+    }
     return id;
   }
 
@@ -70,8 +76,9 @@ export function registerIdeas(app: FastifyInstance, db: Db, inboxSecret: string)
   });
 
   app.get('/ideas', async () => {
-    const rows = db.prepare(`${SELECT} ORDER BY w.created_at DESC`).all() as Row[];
-    return { ideas: rows.map(parse) };
+    const rows = (db.prepare(`${SELECT} ORDER BY w.created_at DESC`).all() as Row[]).map(parse);
+    const sug = tagSuggestions(db, rows.filter((r) => r.status === 'nueva').map((r) => r.id as string));
+    return { ideas: rows.map((r) => ({ ...r, suggestion: sug.get(r.id as string) ?? null })) };
   });
 
   app.post('/ideas', async (req, reply) => {

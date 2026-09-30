@@ -53,6 +53,8 @@ export interface Idea {
   tags: string[];
   source: string;
   created_at: string;
+  /** Borrador de etiquetas de la IA (nunca se aplica sin aceptarlo). null si no hay nada pendiente. */
+  suggestion: { job_id: string; status: 'queued' | 'running' | 'done' | 'failed'; tags?: string[]; error_class?: string } | null;
 }
 
 export interface Reference {

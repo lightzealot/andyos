@@ -25,3 +25,11 @@ Aceptar es la **acción humana** que aplica el borrador (p. ej. fusiona etiqueta
 - Uso real: si una ventana supera su umbral, pausa hasta su reinicio y avisa. Datos de ventanas ya vencidas se ignoran.
 - Avisos: la API llama a `ALERT_WEBHOOK_URL` (n8n → Telegram); es de mejor esfuerzo y nunca rompe la cola. No sigue redirecciones.
 - Seguridad: la cookie no vale para `/worker/*` ni el token para `/ai/*` ni para el resto de la API. El texto de una idea viaja delimitado como **dato**, no como instrucción.
+
+## Módulo 2.3: etiquetado automático de ideas
+- Al crear una idea (web o Telegram) la API encola sola un trabajo `tag_idea` si la cola está habilitada (`WORKER_TOKEN`) y el ajuste `auto_tag` está activo (defecto sí; se cambia en el Inbox o con `PATCH /ai/queue {auto_tag}`). **Nunca bloquea el guardado**: cola llena, IA pausada o error al encolar → la idea se guarda igual.
+- `GET /ideas` añade `suggestion` (`queued|running|done|failed`, con `tags` cuando está lista). Solo se muestra lo accionable: una sugerencia aceptada o ignorada desaparece.
+- `POST /ai/jobs/:id/accept` acepta un cuerpo opcional `{"tags":[…]}` para aplicar **solo** las elegidas; se rechaza cualquier etiqueta que la IA no propuso o una lista vacía. `POST /ai/jobs/:id/dismiss` descarta el borrador sin tocar la idea. Aceptar/ignorar dos veces o tras decidir → 409.
+- Interfaz: el Inbox muestra el borrador rotulado como «Borrador de IA», con las etiquetas marcadas por defecto para que las desmarques.
+- **Migración segura:** `auto_tag` (queue_state) y `dismissed_at` (ai_jobs) se añaden con `ALTER TABLE` si faltan, sin recrear tablas ni perder datos (probado con una base del esquema anterior).
+- Coste: cada idea nueva gasta un trabajo (< 1 % de la ventana de 5 h medido). Si no lo quieres, desactiva el ajuste.
