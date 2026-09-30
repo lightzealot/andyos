@@ -23,7 +23,11 @@ const FIELD_LABEL: Record<string, string> = {
   hook: 'hook', contexto: 'contexto', cambio: 'cambio', aplicacion: 'aplicación', resultado: 'resultado', cta: 'CTA',
   caption: 'caption', 'caption corta': 'caption corta', 'caption gancho': 'caption gancho', 'caption cta': 'caption cta',
 };
-const where = (i: Issue) => (i.field ? ` (${FIELD_LABEL[i.field] ?? i.field})` : '');
+const fieldName = (f: string) => {
+  const m = /^v(\d+) (.+)$/.exec(f); // paquete: «v2 caption» → «versión 2 · caption»
+  return m ? `versión ${m[1]} · ${FIELD_LABEL[m[2]] ?? m[2]}` : FIELD_LABEL[f] ?? f;
+};
+const where = (i: Issue) => (i.field ? ` (${fieldName(i.field)})` : '');
 
 export function issueText(i: Issue): string {
   switch (i.type) {
@@ -32,6 +36,7 @@ export function issueText(i: Issue): string {
     case 'invented_number': return `Cifra que no viene de tus datos: ${i.detail}${where(i)}`;
     case 'hashtags': return `Lleva hashtags (tu estilo no los usa)${where(i)}`;
     case 'invented_quote': return `Cita que parece inventada (no viene de tus datos): «${i.detail}…»${where(i)}`;
+    case 'copied_reference': return `Repite casi literal una frase de una referencia de otro creador: «${i.detail}…»${where(i)}`;
     case 'copied_example': return `Copia casi literal uno de tus ejemplos: «${i.detail}…»${where(i)}`;
     case 'em_dash': return `Demasiadas rayas largas${where(i)}`;
     case 'exclamations': return `Demasiadas exclamaciones${where(i)}`;

@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { api, ApiError, Item, Job, QueueInfo, SCRIPT_PARTS, STATUS_LABEL } from '@/lib/api';
+import { api, ApiError, Item, Job, QueueInfo, Reference, SCRIPT_PARTS, STATUS_LABEL } from '@/lib/api';
+import { RefPicker } from './RefPicker';
 import {
   box, btnGhost, btnPrimary, DraftFrame, FieldEditor, inputCls, Marked, Pending,
 } from './StudioParts';
@@ -15,6 +16,9 @@ const PACK_PARTS = SCRIPT_PARTS.filter(([k]) => k !== 'hook');
 interface PackVersion { angle: string; hook: string; caption: string; [k: string]: string }
 const CAPTION_LABEL: Record<string, string> = { corta: 'Corta', gancho: 'Gancho', cta: 'CTA directo' };
 const ALL_PARTS = SCRIPT_PARTS.map(([k]) => k as string);
+
+/** Títulos de las referencias con las que se pidió el borrador. */
+const refsOf = (j: Job) => ((j.input.references as { title: string }[] | undefined) ?? []).map((r) => r.title);
 
 /** ¿Sigue esperando una decisión humana? Un borrador aceptado, ignorado o cancelado ya no se muestra. */
 const actionable = (j: Job) => !j.accepted_at && !j.dismissed_at && j.status !== 'canceled';
@@ -33,6 +37,8 @@ export function Studio() {
   const [pickCaption, setPickCaption] = useState<Record<string, number>>({});
   const [pickParts, setPickParts] = useState<Record<string, string[]>>({});
   const [versions, setVersions] = useState(3);
+  const [refs, setRefs] = useState<Reference[] | null>(null);
+  const [pickRefs, setPickRefs] = useState<string[]>([]);
   const [pickPack, setPickPack] = useState<Record<string, { version?: number; sections: string[] }>>({});
 
   const item = useMemo(() => items?.find((i) => i.id === selectedId) ?? null, [items, selectedId]);
@@ -70,6 +76,17 @@ export function Studio() {
     void loadJobs(selectedId);
     window.history.replaceState(null, '', `?id=${selectedId}`);
   }, [selectedId, queue, loadJobs]);
+
+  // Referencias disponibles; se preseleccionan las ya enlazadas a este contenido (máx. 3)
+  useEffect(() => {
+    if (!selectedId) return;
+    let alive = true;
+    setRefs(null); setPickRefs([]);
+    api<{ references: Reference[] }>(`/references?content_id=${selectedId}`)
+      .then((r) => { if (alive) { setRefs(r.references); setPickRefs(r.references.filter((x) => x.linked).slice(0, 3).map((x) => x.id)); } })
+      .catch(() => { if (alive) setRefs([]); });
+    return () => { alive = false; };
+  }, [selectedId]);
 
   // Mientras haya un trabajo en marcha se consulta cada pocos segundos
   const working = jobs.some((j) => j.status === 'queued' || j.status === 'running');
@@ -125,6 +142,7 @@ export function Studio() {
     <div className="space-y-2">
       <input className={inputCls} placeholder="Tema o enfoque (opcional)" aria-label="Tema o enfoque" value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={500} />
       <input className={inputCls} placeholder="Ángulo (opcional): confesión, error común…" aria-label="Ángulo" value={angle} onChange={(e) => setAngle(e.target.value)} maxLength={300} />
+      <RefPicker refs={refs} picked={pickRefs} onChange={setPickRefs} />
       {task === 'pack' && (
         <label className="flex items-center gap-2 text-sm text-zinc-300">Versiones
           <select className={`${inputCls} w-20`} aria-label="Número de versiones" value={versions} onChange={(e) => setVersions(Number(e.target.value))}>
@@ -135,7 +153,7 @@ export function Studio() {
       )}
       <button
         disabled={busy || !canAsk} data-generate={task}
-        onClick={() => generate(TASK_OF[task], { ...(topic.trim() && { topic: topic.trim() }), ...(angle.trim() && { angle: angle.trim() }), ...(task === 'pack' && { versions }) })}
+        onClick={() => generate(TASK_OF[task], { ...(topic.trim() && { topic: topic.trim() }), ...(angle.trim() && { angle: angle.trim() }), ...(task === 'pack' && { versions }), ...(pickRefs.length > 0 && { reference_ids: pickRefs }) })}
         className={btnPrimary}
       >✨ {task === 'pack' ? `Generar paquete (${versions} ${versions === 1 ? 'versión' : 'versiones'})` : label}</button>
     </div>
@@ -153,7 +171,12 @@ export function Studio() {
             <button className="ml-2 underline" disabled={busy} onClick={() => decide(job, false)}>Descartar aviso</button>
           </p>
         )}
-        {job?.status === 'done' && <DraftFrame job={job} busy={busy} onIgnore={() => decide(job, false)}>{render(job)}</DraftFrame>}
+        {job?.status === 'done' && (
+          <DraftFrame job={job} busy={busy} onIgnore={() => decide(job, false)}>
+            {refsOf(job).length > 0 && <p data-used-refs className="mb-2 text-xs text-zinc-500">Con la estructura de: {refsOf(job).join(' · ')}</p>}
+            {render(job)}
+          </DraftFrame>
+        )}
       </div>
     );
   }

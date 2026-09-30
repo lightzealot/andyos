@@ -3,13 +3,13 @@
  * Se aplica a lo que genera la IA para devolverle una lista concreta de defectos y para avisar al usuario.
  */
 export type IssueType =
-  | 'banned_phrase' | 'ai_opener' | 'invented_number' | 'hashtags' | 'copied_example' | 'invented_quote'   // fuertes
+  | 'banned_phrase' | 'ai_opener' | 'invented_number' | 'hashtags' | 'copied_example' | 'copied_reference' | 'invented_quote'   // fuertes
   | 'em_dash' | 'exclamations' | 'emoji' | 'long_sentence'                              // débiles
   | 'pending';                                                                           // informativo: [DATO] / [VIVENCIA] por completar
 
 export interface LintIssue { type: IssueType; detail: string; field?: string }
 
-const STRONG: IssueType[] = ['banned_phrase', 'ai_opener', 'invented_number', 'hashtags', 'copied_example', 'invented_quote'];
+const STRONG: IssueType[] = ['banned_phrase', 'ai_opener', 'invented_number', 'hashtags', 'copied_example', 'copied_reference', 'invented_quote'];
 export const isStrong = (i: LintIssue) => STRONG.includes(i.type);
 
 /** Minúsculas y sin tildes, para comparar sin depender de acentos. */
@@ -27,6 +27,8 @@ export interface LintOptions {
   noHashtags?: boolean;
   /** Tus textos de ejemplo: copiarlos casi literalmente es un defecto (5 palabras seguidas iguales). */
   examples?: string[];
+  /** Textos de referencias de OTROS creadores: repetir 5 palabras seguidas es copiar. */
+  references?: string[];
 }
 
 const SHINGLE = 5;
@@ -69,6 +71,13 @@ export function lintText(text: string, o: LintOptions): LintIssue[] {
       if (hit) { add('copied_example', hit); break; }
     }
   }
+  if (o.references?.length) {
+    const own = new Set(shingles(text));
+    for (const ref of o.references) {
+      const hit = shingles(ref).find((sh) => own.has(sh));
+      if (hit) { add('copied_reference', hit); break; }
+    }
+  }
   // Citas inventadas: alguien "dijo" algo que no consta en tus datos (p. ej. un seguidor que te escribió).
   // Las citas cortas (una palabra clave como "AUTOMATIZA") no cuentan.
   for (const m of text.matchAll(/[«“"]([^»”"\n]{10,}?)[»”"]/g)) {
@@ -106,6 +115,7 @@ export function feedbackFor(issues: LintIssue[]): string {
       case 'ai_opener': return `- Empieza con un arranque típico de IA («${i.detail}…»)${where}. Empieza directo, con algo concreto.`;
       case 'invented_number': return `- La cifra «${i.detail}»${where} no viene de los datos que te di. Quítala o pon [DATO].`;
       case 'copied_example': return `- Copias casi literal una frase de sus ejemplos («${i.detail}…»)${i.field ? ` en «${i.field}»` : ''}. Dila con tus propias palabras.`;
+      case 'copied_reference': return `- Repites casi literal una frase de una REFERENCIA de otro creador («${i.detail}…»)${i.field ? ` en «${i.field}»` : ''}. De las referencias solo se toma la mecánica (tipo de hook, ritmo, orden), nunca sus palabras: dilo con tus propias palabras.`;
       case 'invented_quote': return `- La cita «${i.detail}»${where} parece inventada: no viene de tus datos. Quítala o escribe [VIVENCIA] para que la complete Andrés.`;
       case 'pending': return '';
       case 'hashtags': return `- Sin hashtags${where}: este estilo no los usa.`;
