@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { seedVoice } from './voice.js';
 
 export type Db = Database.Database;
 
@@ -93,6 +94,22 @@ CREATE TABLE IF NOT EXISTS queue_state (
 );
 INSERT OR IGNORE INTO queue_state (id) VALUES (1);
 
+CREATE TABLE IF NOT EXISTS voice_profile (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  guide TEXT NOT NULL,
+  facts TEXT NOT NULL,
+  banned TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS voice_examples (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('hook','script','caption')),
+  text TEXT NOT NULL,
+  source TEXT NOT NULL CHECK (source IN ('semilla','usuario')),
+  created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS item_links (
   from_id TEXT NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
   to_id TEXT NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
@@ -115,5 +132,7 @@ export function openDb(path: string): Db {
   
   ensureColumn(db, 'queue_state', 'auto_tag', 'INTEGER NOT NULL DEFAULT 1');
   ensureColumn(db, 'ai_jobs', 'dismissed_at', 'TEXT');
+  ensureColumn(db, 'ai_jobs', 'review', 'TEXT');
+  seedVoice(db);
   return db;
 }

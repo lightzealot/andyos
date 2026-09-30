@@ -11,6 +11,7 @@ import { registerReferences } from './references.js';
 import { registerN8n, type N8nConfig } from './n8n.js';
 import { registerBackup } from './backup.js';
 import { registerAi } from './ai.js';
+import { registerVoice } from './voice-routes.js';
 import { makeNotifier } from './notify.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
@@ -196,6 +197,7 @@ export async function buildApp(db: Db, cfg: Config) {
   registerReferences(app, db);
   registerN8n(app, cfg.n8n ?? null);
   registerBackup(app, db, cfg.backupSecret);
+  registerVoice(app, db, cfg.now ?? Date.now);
   if (cfg.workerToken) {
     registerAi(app, db, { workerToken: cfg.workerToken, notify: makeNotifier(cfg.alert), now: cfg.now ?? Date.now });
   }

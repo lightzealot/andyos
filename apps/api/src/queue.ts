@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from './db.js';
 import type { Notify } from './notify.js';
+import { feedbackFor, needsRetry } from './lint.js';
 import { TASKS, TaskError } from './tasks.js';
+import { getVoice } from './voice.js';
 
 export const LEASE_S = 180;        // tiempo que un trabajo reclamado se reserva al worker
 export const JOB_TIMEOUT_S = 120;  // tiempo máximo que se le pide al worker por trabajo
@@ -123,6 +125,7 @@ const parseJob = (r: Row): Job => ({
   input: JSON.parse(r.input as string),
   output: r.output ? JSON.parse(r.output as string) : null,
   usage: r.usage ? JSON.parse(r.usage as string) : null,
+  review: r.review ? JSON.parse(r.review as string) : null,
 });
 export const getJob = (db: Db, id: string) => {
   const r = db.prepare('SELECT * FROM ai_jobs WHERE id = ?').get(id) as Row | undefined;
@@ -251,7 +254,7 @@ export function claim(db: Db, providers: string[], now: number, notify: Notify):
                 started_at = COALESCE(started_at, ?), not_before = NULL, updated_at = ? WHERE id = ?`)
       .run(iso(now + LEASE_S * 1000), iso(now), iso(now), row.id);
     const def = TASKS[row.task as string];
-    const built = def.build(JSON.parse(row.input as string));
+    const built = def.build(JSON.parse(row.input as string), getVoice(db));
     return {
       job: {
         id: row.id as string, task: row.task as string, provider: row.requested_provider as string,
@@ -279,9 +282,20 @@ export function complete(db: Db, id: string, res: JobResult, now: number, notify
     // Salida que no cumple el esquema: fallo permanente (no se reintenta a ciegas)
     return fail(db, id, { error_class: 'permanent', error: 'La salida no cumple el esquema esperado' }, now, notify);
   }
-  db.prepare(`UPDATE ai_jobs SET status = 'done', output = ?, provider = ?, model = ?, usage = ?, lease_until = NULL,
+  // Revisión de estilo/datos: si el borrador es defectuoso se pide UNA segunda pasada con la lista de defectos.
+  const issues = def.review?.(res.output, job.input, getVoice(db)) ?? [];
+  const revised = Boolean(job.input.__revised);
+  if (issues.length && !revised && needsRetry(issues) && (job.attempts as number) < (job.max_attempts as number)) {
+    const input = { ...job.input, __revised: true, feedback: feedbackFor(issues), prev: res.output };
+    db.prepare("UPDATE ai_jobs SET status = 'queued', input = ?, lease_until = NULL, not_before = NULL, updated_at = ? WHERE id = ?")
+      .run(JSON.stringify(input), iso(now), id);
+    if (res.usage_snapshot) recordUsage(db, res.usage_snapshot, now, notify);
+    return;
+  }
+  db.prepare(`UPDATE ai_jobs SET status = 'done', output = ?, provider = ?, model = ?, usage = ?, review = ?, lease_until = NULL,
               error_class = NULL, error = NULL, finished_at = ?, updated_at = ? WHERE id = ?`)
-    .run(JSON.stringify(res.output), res.provider, res.model ?? null, res.usage ? JSON.stringify(res.usage) : null, iso(now), iso(now), id);
+    .run(JSON.stringify(res.output), res.provider, res.model ?? null, res.usage ? JSON.stringify(res.usage) : null,
+      JSON.stringify({ issues, revised }), iso(now), iso(now), id);
   if (res.usage_snapshot) recordUsage(db, res.usage_snapshot, now, notify);
 }
 
