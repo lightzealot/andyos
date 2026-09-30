@@ -35,6 +35,8 @@ async function setup(alert: { url: string; secret: string } | undefined = { url:
   });
   const login = await app.inject({ method: 'POST', url: '/auth/login', payload: { password: 'pw' } });
   const cookie = (login.headers['set-cookie'] as string).split(';')[0];
+  // Estos tests ejercitan la cola de forma explícita: sin etiquetado automático al crear ideas.
+  await app.inject({ method: 'PATCH', url: '/ai/queue', payload: { auto_tag: false }, headers: { cookie } });
   type M = 'GET' | 'POST' | 'PATCH';
   const user = (method: M, url: string, payload?: object) => app.inject({ method, url, payload, headers: { cookie } });
   const worker = (url: string, payload: object = {}) => app.inject({ method: 'POST', url, payload, headers: { authorization: `Bearer ${WORKER}` } });

@@ -101,10 +101,19 @@ CREATE TABLE IF NOT EXISTS item_links (
 );
 `;
 
+/** Migraciones aditivas: añade una columna si falta (las tablas existentes de producción no se recrean). */
+function ensureColumn(db: Db, table: string, column: string, ddl: string) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+}
+
 export function openDb(path: string): Db {
   const db = new Database(path);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
+  
+  ensureColumn(db, 'queue_state', 'auto_tag', 'INTEGER NOT NULL DEFAULT 1');
+  ensureColumn(db, 'ai_jobs', 'dismissed_at', 'TEXT');
   return db;
 }

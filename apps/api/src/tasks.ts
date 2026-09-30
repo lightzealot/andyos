@@ -11,6 +11,8 @@ export interface TaskDef {
   outputSchema: Record<string, unknown>;
   validateOutput(output: unknown): boolean;
   build(input: Record<string, unknown>): { system: string; prompt: string };
+  /** Permite aceptar solo una parte del borrador (p. ej. algunas etiquetas). Lanza TaskError('invalid') si no es válida. */
+  select?(output: unknown, selection: unknown): unknown;
   /** Efecto al ACEPTAR el borrador (acción humana). */
   apply(db: Db, input: Record<string, unknown>, output: unknown, now: string): void;
 }
@@ -41,6 +43,12 @@ const tagIdea: TaskDef = {
         + 'sobre tema, formato o herramienta. No inventes datos.',
       prompt: `Idea a clasificar:\n"""\n${String(input.text)}\n"""`,
     };
+  },
+  select(output, selection) {
+    const sel = z.object({ tags: z.array(z.string()).min(1).max(5) }).strict().safeParse(selection);
+    const offered = new Set(TagOutput.parse(output).tags);
+    if (!sel.success || !sel.data.tags.every((t) => offered.has(t))) throw new TaskError('invalid');
+    return { tags: [...new Set(sel.data.tags)] };
   },
   apply(db, input, output, now) {
     const tags = TagOutput.parse(output).tags.map(normTag).filter(Boolean);

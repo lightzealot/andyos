@@ -192,7 +192,7 @@ export async function buildApp(db: Db, cfg: Config) {
     return r.changes ? { ok: true } : reply.code(404).send({ error: 'not_found' });
   });
 
-  registerIdeas(app, db, cfg.inboxSecret);
+  registerIdeas(app, db, cfg.inboxSecret, cfg.workerToken ? { now: cfg.now ?? Date.now } : undefined);
   registerReferences(app, db);
   registerN8n(app, cfg.n8n ?? null);
   registerBackup(app, db, cfg.backupSecret);
