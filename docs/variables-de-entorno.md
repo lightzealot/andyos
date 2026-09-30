@@ -49,7 +49,7 @@ Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin 
 | Variable | Valor |
 |---|---|
 | `PUBLIC_API_URL` | `https://api.andresgomez.store` (https obligatorio; `http://localhost…` solo en local). Instagram lee las imágenes desde esta URL, así que tiene que ser pública. **Su presencia activa el módulo** (subida de imágenes y modo de prueba) |
-| `WINDSOR_API_KEY` | Tu clave de Windsor: **onboard.windsor.ai → «Hello [tu correo]» (arriba a la derecha) → Settings → pestaña Account → API Access → icono del ojo/copiar**. Es una clave de cuenta completa (puede leer tus datos de Windsor): guárdala solo aquí, nunca en el chat, y róntala en Windsor si se filtra |
+| `WINDSOR_API_KEY` | Tu clave de Windsor: **onboard.windsor.ai → «Hello [tu correo]» (arriba a la derecha) → Settings → pestaña Account → API Access → icono del ojo/copiar**. Es una clave de cuenta completa (puede leer tus datos de Windsor): guárdala solo aquí, nunca en el chat, y rótala (genera otra) en Windsor si se filtra |
 | `WINDSOR_IG_ACCOUNT_ID` | Id de tu cuenta de Instagram en Windsor (la de `andyontrade` es `17841400336240228`; se ve con `get_connectors`) |
 | `IG_ACCOUNT_NAME` | Nombre que se muestra en la confirmación, p. ej. `andyontrade` |
 | `PUBLISHING_ENABLED` | **No la definas al principio.** Sin ella todo funciona en **MODO DE PRUEBA** (se ve la vista previa y lo que se enviaría, pero no se envía nada). Solo `true` activa la publicación real; con `true` la API **se niega a arrancar** si falta `WINDSOR_API_KEY` o `WINDSOR_IG_ACCOUNT_ID` |
