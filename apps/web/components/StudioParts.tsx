@@ -31,6 +31,7 @@ export function issueText(i: Issue): string {
     case 'ai_opener': return `Arranque típico de IA: «${i.detail}…»${where(i)}`;
     case 'invented_number': return `Cifra que no viene de tus datos: ${i.detail}${where(i)}`;
     case 'hashtags': return `Lleva hashtags (tu estilo no los usa)${where(i)}`;
+    case 'invented_quote': return `Cita que parece inventada (no viene de tus datos): «${i.detail}…»${where(i)}`;
     case 'copied_example': return `Copia casi literal uno de tus ejemplos: «${i.detail}…»${where(i)}`;
     case 'em_dash': return `Demasiadas rayas largas${where(i)}`;
     case 'exclamations': return `Demasiadas exclamaciones${where(i)}`;

@@ -54,3 +54,6 @@ Aceptar es la **acción humana** que aplica el borrador (p. ej. fusiona etiqueta
 - **Mi voz:** guía, hechos, frases prohibidas y ejemplos (los tuyos se distinguen de la semilla).
 - Aceptar o editar sobre un contenido aprobado **retira la aprobación** y la pantalla lo dice.
 - API: `GET /ai/jobs` admite `target_id` y `task` (lista separada por comas). CORS admite ahora `PUT`.
+
+## Detección de citas inventadas
+Prueba real en producción: el guion incluyó *«un seguidor que me escribe "oye, no me llegó nada"»*, una cita que no consta en tus datos. `lint.ts` marca ahora como defecto fuerte (`invented_quote`) toda cita de 4+ palabras entre comillas que no aparezca en el título, las notas, el tema, los hechos o tus ejemplos; las palabras clave cortas de los CTA («AUTOMATIZA») no cuentan. Provoca la segunda pasada, con la instrucción de quitarla o escribir `[VIVENCIA]`. Sigue siendo una red parcial: una inferencia plausible sin comillas puede pasar, por lo que la revisión humana es obligatoria.

@@ -138,6 +138,12 @@ describe('honestidad: no inventar vivencias ni copiarte', () => {
     ];
     for (const [name, go] of cases) expect((await go(await setup())).r.status, name).toBe('queued');
   });
+  it('inventar una cita ("un seguidor me escribió…") provoca la segunda pasada', async () => {
+    const out = { ...CLEAN_SCRIPT, resultado: 'Ya no me entero por un seguidor que me escribe "oye, no me llegó nada".' };
+    const r = await ctx.run('script', { content_id: await ctx.content() }, out);
+    expect(r.r.status).toBe('queued');
+    expect((await ctx.getJob(r.id)).input.feedback).toMatch(/cita/);
+  });
   it('los [DATO] y [VIVENCIA] no provocan reintento: llegan a ti señalados como pendientes', async () => {
     const id = await ctx.content();
     // tres campos con marcadores: es justo el umbral con el que tres defectos "débiles" SÍ pedirían reintento

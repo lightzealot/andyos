@@ -3,13 +3,13 @@
  * Se aplica a lo que genera la IA para devolverle una lista concreta de defectos y para avisar al usuario.
  */
 export type IssueType =
-  | 'banned_phrase' | 'ai_opener' | 'invented_number' | 'hashtags' | 'copied_example'   // fuertes
+  | 'banned_phrase' | 'ai_opener' | 'invented_number' | 'hashtags' | 'copied_example' | 'invented_quote'   // fuertes
   | 'em_dash' | 'exclamations' | 'emoji' | 'long_sentence'                              // débiles
   | 'pending';                                                                           // informativo: [DATO] / [VIVENCIA] por completar
 
 export interface LintIssue { type: IssueType; detail: string; field?: string }
 
-const STRONG: IssueType[] = ['banned_phrase', 'ai_opener', 'invented_number', 'hashtags', 'copied_example'];
+const STRONG: IssueType[] = ['banned_phrase', 'ai_opener', 'invented_number', 'hashtags', 'copied_example', 'invented_quote'];
 export const isStrong = (i: LintIssue) => STRONG.includes(i.type);
 
 /** Minúsculas y sin tildes, para comparar sin depender de acentos. */
@@ -69,6 +69,14 @@ export function lintText(text: string, o: LintOptions): LintIssue[] {
       if (hit) { add('copied_example', hit); break; }
     }
   }
+  // Citas inventadas: alguien "dijo" algo que no consta en tus datos (p. ej. un seguidor que te escribió).
+  // Las citas cortas (una palabra clave como "AUTOMATIZA") no cuentan.
+  for (const m of text.matchAll(/[«“"]([^»”"\n]{10,}?)[»”"]/g)) {
+    const q = m[1].trim();
+    if (q.split(/\s+/).length < 4) continue;
+    const nq = norm(q);
+    if (!norm(o.source).includes(nq) && !(o.examples ?? []).some((e) => norm(e).includes(nq))) add('invented_quote', q.slice(0, 60));
+  }
   const pend = pendingMarkers(text);
   if (pend.length) add('pending', `${pend.length} por completar`);
 
@@ -98,6 +106,7 @@ export function feedbackFor(issues: LintIssue[]): string {
       case 'ai_opener': return `- Empieza con un arranque típico de IA («${i.detail}…»)${where}. Empieza directo, con algo concreto.`;
       case 'invented_number': return `- La cifra «${i.detail}»${where} no viene de los datos que te di. Quítala o pon [DATO].`;
       case 'copied_example': return `- Copias casi literal una frase de sus ejemplos («${i.detail}…»)${i.field ? ` en «${i.field}»` : ''}. Dila con tus propias palabras.`;
+      case 'invented_quote': return `- La cita «${i.detail}»${where} parece inventada: no viene de tus datos. Quítala o escribe [VIVENCIA] para que la complete Andrés.`;
       case 'pending': return '';
       case 'hashtags': return `- Sin hashtags${where}: este estilo no los usa.`;
       case 'em_dash': return `- Demasiadas rayas largas${where}. Usa puntos y frases cortas.`;
