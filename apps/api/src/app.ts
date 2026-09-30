@@ -73,7 +73,7 @@ export async function buildApp(db: Db, cfg: Config) {
     return reply.code(status).send({ error: status === 429 ? 'rate_limited' : 'bad_request' });
   });
   await app.register(cookie);
-  await app.register(cors, { origin: cfg.webOrigin, credentials: true, methods: ['GET', 'POST', 'PATCH', 'DELETE'] });
+  await app.register(cors, { origin: cfg.webOrigin, credentials: true, methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] });
   await app.register(rateLimit, { global: false });
 
   const getItem = (id: string) => {

@@ -131,9 +131,14 @@ export const getJob = (db: Db, id: string) => {
   const r = db.prepare('SELECT * FROM ai_jobs WHERE id = ?').get(id) as Row | undefined;
   return r ? parseJob(r) : undefined;
 };
-export const listJobs = (db: Db, status: string | undefined, limit: number) =>
-  (db.prepare(`SELECT * FROM ai_jobs ${status ? 'WHERE status = ?' : ''} ORDER BY created_at DESC LIMIT ?`)
-    .all(...(status ? [status, limit] : [limit])) as Row[]).map(parseJob);
+export function listJobs(db: Db, f: { status?: string; target_id?: string; task?: string[] }, limit: number) {
+  const where: string[] = []; const args: unknown[] = [];
+  if (f.status) { where.push('status = ?'); args.push(f.status); }
+  if (f.target_id) { where.push('target_id = ?'); args.push(f.target_id); }
+  if (f.task?.length) { where.push(`task IN (${f.task.map(() => '?').join(',')})`); args.push(...f.task); }
+  const sql = `SELECT * FROM ai_jobs ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY created_at DESC LIMIT ?`;
+  return (db.prepare(sql).all(...args, limit) as Row[]).map(parseJob);
+}
 
 export function enqueue(db: Db, p: { task: string; input: unknown; provider?: 'claude' | 'codex' }, now: number) {
   const def = TASKS[p.task];

@@ -54,10 +54,14 @@ export function registerAi(app: FastifyInstance, db: Db, opts: { workerToken: st
   app.get('/ai/jobs', async (req, reply) => {
     const q = z.object({
       status: z.enum(['queued', 'running', 'done', 'failed', 'canceled']).optional(),
+      target_id: z.string().min(1).max(64).optional(),
+      task: z.string().max(200).optional(), // lista separada por comas
       limit: z.coerce.number().int().min(1).max(100).default(30),
     }).safeParse(req.query);
     if (!q.success) return reply.code(400).send({ error: 'invalid' });
-    return { jobs: listJobs(db, q.data.status, q.data.limit) };
+    const task = q.data.task?.split(',').map((t) => t.trim()).filter((t) => t in TASKS);
+    if (q.data.task && !task?.length) return { jobs: [] };
+    return { jobs: listJobs(db, { status: q.data.status, target_id: q.data.target_id, task }, q.data.limit) };
   });
 
   app.get('/ai/jobs/:id', async (req, reply) => {

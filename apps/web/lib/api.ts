@@ -27,6 +27,7 @@ export interface Item {
   script: Record<string, string>;
   scheduled_at: string | null;
   approved_at: string | null;
+  ai_generated: boolean;
   updated_at: string;
 }
 
@@ -90,3 +91,43 @@ export interface N8nExecution {
   started_at: string | null;
   stopped_at: string | null;
 }
+
+export interface Issue { type: string; detail: string; field?: string }
+
+/** Un trabajo de IA (borrador). `output` depende de la tarea. */
+export interface Job {
+  id: string;
+  task: 'hooks' | 'script' | 'caption' | 'humanize' | 'tag_idea';
+  status: 'queued' | 'running' | 'done' | 'failed' | 'canceled';
+  input: Record<string, unknown>;
+  output: unknown;
+  review: { issues: Issue[]; revised: boolean } | null;
+  error_class: string | null;
+  accepted_at: string | null;
+  dismissed_at: string | null;
+  provider: string | null;
+  model: string | null;
+  created_at: string;
+}
+
+export interface QueueInfo {
+  state: {
+    paused: boolean; paused_reason: string | null; paused_until: string | null; auto_tag: boolean;
+    max_per_day: number; max_per_week: number;
+    usage_snapshot: { five_hour?: { utilization: number }; seven_day?: { utilization: number } } | null;
+  };
+  counters: { day: number; week: number; queued: number; running: number };
+}
+
+export interface Voice {
+  guide: string;
+  facts: string[];
+  banned: string[];
+  examples: { id: string; kind: 'hook' | 'script' | 'caption'; text: string; source: 'semilla' | 'usuario'; created_at: string }[];
+  updated_at: string;
+}
+
+export const SCRIPT_PARTS = [
+  ['hook', 'Hook'], ['contexto', 'Contexto'], ['cambio', 'Cambio'],
+  ['aplicacion', 'Aplicación / Demo'], ['resultado', 'Resultado'], ['cta', 'CTA'],
+] as const;

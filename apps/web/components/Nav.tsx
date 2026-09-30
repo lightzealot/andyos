@@ -4,6 +4,7 @@ const LINKS = [
   { href: '/inbox/', label: 'Inbox' },
   { href: '/', label: 'Pipeline' },
   { href: '/calendar/', label: 'Calendario' },
+  { href: '/studio/', label: 'Estudio' },
   { href: '/references/', label: 'Referencias' },
   { href: '/n8n/', label: 'n8n' },
 ];

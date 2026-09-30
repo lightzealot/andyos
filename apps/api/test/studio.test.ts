@@ -284,3 +284,18 @@ describe('las reglas de aprobación siguen mandando', () => {
     expect((await ctx.getJob(jid)).accepted_at).toBeNull();
   });
 });
+
+describe('listar los borradores de una tarjeta', () => {
+  it('filtra por contenido y por tipo de tarea', async () => {
+    const a = await ctx.content({ title: 'A' }); const b = await ctx.content({ title: 'B' });
+    await ctx.run('hooks', { content_id: a }, CLEAN_HOOKS);
+    await ctx.run('caption', { content_id: a }, CLEAN_CAPTIONS);
+    await ctx.run('hooks', { content_id: b }, CLEAN_HOOKS);
+    const ids = async (q: string) => ((await ctx.user('GET', `/ai/jobs?${q}`)).json().jobs as { task: string; target_id: string }[]).map((j) => `${j.task}:${j.target_id === a ? 'A' : 'B'}`).sort();
+    expect(await ids(`target_id=${a}`)).toEqual(['caption:A', 'hooks:A']);
+    expect(await ids(`target_id=${a}&task=hooks`)).toEqual(['hooks:A']);
+    expect(await ids(`target_id=${b}&task=hooks,script`)).toEqual(['hooks:B']);
+    expect(await ids('task=nada')).toEqual([]);
+    expect((await ctx.user('GET', '/ai/jobs?target_id=')).statusCode).toBe(400);
+  });
+});

@@ -29,6 +29,7 @@ Tests: `npm test` (API) y `npm test -w apps/web` (fechas).
 
 Variables nuevas de la API: `INBOX_WEBHOOK_SECRET` (mín. 32 caracteres; el mismo valor va en la credencial Header Auth de n8n).
 
+- **Estudio** (`/studio/`): genera hooks, guion (Hook → Contexto → Cambio → Aplicación → Resultado → CTA) y captions con tu voz, como **borradores** que eliges y aceptas. Avisa de frases de relleno, cifras inventadas, datos por completar y de la segunda pasada automática; permite humanizar cada campo, guardar tus textos como ejemplos de tu voz y editar tu guía y tus hechos. Detalle en [`docs/04-cola-de-ia.md`](docs/04-cola-de-ia.md).
 - **Referencias** (`/references/`): biblioteca con nota de *por qué funciona* y patrón de hook; «Crear contenido inspirado» genera una tarjeta en el pipeline enlazada a la referencia. La URL solo se guarda como enlace: el servidor nunca la visita.
 
 - **n8n** (`/n8n/`): workflows con estado y errores recientes, ejecuciones (filtro de errores) y botón «Disparar» para workflows habilitados. Clave de API de solo lectura; el disparo va por webhook porque la API pública no puede ejecutar workflows. Ver [`n8n/README.md`](n8n/README.md).

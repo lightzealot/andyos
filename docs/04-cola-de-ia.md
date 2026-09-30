@@ -46,3 +46,11 @@ Aceptar es la **acción humana** que aplica el borrador (p. ej. fusiona etiqueta
 4. Aceptar (`POST /ai/jobs/:id/accept`) exige elegir: `{index}` para hooks y captions, `{parts:[…]}` opcional para el guion. Escribe con las reglas del editor: **cambiar contenido aprobado retira la aprobación**, salvo que el texto sea idéntico.
 
 **Límites conocidos** (el detector no puede saberlo todo): una vivencia plausible pero inventada («antes respondía a mano») puede pasar; los `[DATO]`/`[VIVENCIA]` son la red de seguridad, pero la revisión humana sigue siendo obligatoria.
+
+## Módulo 2.4b: pantalla del Estudio (`/studio/`)
+- Se abre con `?id=<tarjeta>` (hay un enlace «Abrir en el Estudio» en el detalle de cada tarjeta del Pipeline).
+- **Izquierda:** pestañas Hooks · Guion · Caption · Mi voz. Cada una pide un borrador (con tema y ángulo opcionales), muestra su estado y, al llegar, el borrador rotulado como tal con lo que comprobó el Estudio (segunda pasada, avisos de estilo, datos por completar en ámbar). Hooks y captions exigen **elegir uno** (no hay elección por defecto); el guion llega con todas las partes marcadas y puedes desmarcar. Ignorar no toca nada. Los borradores pendientes sobreviven a recargar.
+- **Derecha:** el contenido actual, editable campo a campo, con avisos de estilo en vivo (sin IA), «✨ Humanizar» (propuesta que aceptas o ignoras) y «★ Guardar como mi voz».
+- **Mi voz:** guía, hechos, frases prohibidas y ejemplos (los tuyos se distinguen de la semilla).
+- Aceptar o editar sobre un contenido aprobado **retira la aprobación** y la pantalla lo dice.
+- API: `GET /ai/jobs` admite `target_id` y `task` (lista separada por comas). CORS admite ahora `PUT`.
