@@ -13,6 +13,9 @@ export type Status = (typeof STATUSES)[number];
 export const GATED: readonly Status[] = ['programado', 'publicado', 'analizado'];
 
 export const PLATFORMS = ['instagram', 'tiktok', 'youtube', 'linkedin', 'x'] as const;
+/** Estados del Pipeline de CarruselOS (solo seguimiento: no aprueba ni publica nada en AndyOS). */
+export const CAROUSEL_STATES = ['enfoque', 'narrativa', 'cta', 'borradores', 'preview', 'aprobado', 'exportado', 'publicado'] as const;
+
 export const FORMATS = ['reel', 'carousel', 'short', 'post', 'video', 'story'] as const;
 
 const Script = z.object({
@@ -32,6 +35,9 @@ const Content = {
   published_url: HttpUrl.nullable(),
   asset_links: z.array(HttpUrl).max(50),
   cta_keyword: z.string().max(50).nullable(),
+  // Nombre de carpeta en CarruselOS/proyectos (solo texto: la API nunca toca el disco).
+  carousel_folder: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/).nullable(),
+  carousel_state: z.enum(CAROUSEL_STATES).nullable(),
 };
 
 export const CreateItem = z.object({

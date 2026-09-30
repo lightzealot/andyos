@@ -39,14 +39,15 @@ export interface Config {
 const COOKIE = 'andyos_session';
 const CONTENT_COLS = [
   'platform', 'format', 'pillar', 'hook', 'script', 'caption', 'scheduled_at',
-  'published_at', 'published_url', 'asset_links', 'cta_keyword',
+  'published_at', 'published_url', 'asset_links', 'cta_keyword', 'carousel_folder', 'carousel_state',
 ] as const;
 const JSON_COLS = new Set(['script', 'asset_links']);
 
 const SELECT = `
   SELECT w.id, w.type, w.title, w.status, w.notes, w.tags, w.created_at, w.updated_at,
          c.platform, c.format, c.pillar, c.hook, c.script, c.caption, c.scheduled_at,
-         c.published_at, c.published_url, c.asset_links, c.cta_keyword, c.approved_at, c.ai_generated
+         c.published_at, c.published_url, c.asset_links, c.cta_keyword, c.approved_at, c.ai_generated,
+         c.carousel_folder, c.carousel_state
   FROM work_items w LEFT JOIN content_details c ON c.work_item_id = w.id`;
 
 type Row = Record<string, unknown>;

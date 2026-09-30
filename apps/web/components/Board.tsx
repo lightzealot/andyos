@@ -19,6 +19,7 @@ function Card({ item, onOpen }: { item: Item; onOpen: () => void }) {
       <div className="mt-2 flex flex-wrap gap-1 text-xs text-zinc-400">
         {item.platform && <span className="rounded bg-zinc-700 px-1.5 py-0.5">{item.platform}</span>}
         {item.format && <span className="rounded bg-zinc-700 px-1.5 py-0.5">{item.format}</span>}
+        {item.carousel_state && <span data-carousel-state className="rounded bg-indigo-900 px-1.5 py-0.5 text-indigo-300" title="Estado en CarruselOS">🎠 {item.carousel_state}</span>}
         {item.approved_at && <span className="rounded bg-emerald-900 px-1.5 py-0.5 text-emerald-300">aprobado</span>}
       </div>
     </div>
