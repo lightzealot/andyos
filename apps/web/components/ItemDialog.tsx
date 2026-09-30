@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fromInputValue, toInputValue } from '@/lib/dates';
-import { api, ApiError, FORMATS, Item, PLATFORMS, STATUSES, STATUS_LABEL } from '@/lib/api';
+import { api, ApiError, FORMATS, Item, PLATFORMS, Reference, STATUSES, STATUS_LABEL } from '@/lib/api';
 import { CAROUSEL_STATES, FOLDER_RE, startPrompt, suggestFolder } from '@/lib/carousel';
 
 const SCRIPT_PARTS = [
@@ -24,6 +24,15 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
     folder: item.carousel_folder ?? '', cstate: item.carousel_state ?? '',
   });
   const [copied, setCopied] = useState('');
+  // Referencias en las que se inspira esta tarjeta («Crear contenido inspirado»); si falla, simplemente no se muestran
+  const [inspired, setInspired] = useState<Reference[]>([]);
+  useEffect(() => {
+    let alive = true;
+    api<{ references: Reference[] }>(`/references?content_id=${item.id}`)
+      .then((r) => { if (alive) setInspired(r.references.filter((x) => x.linked)); })
+      .catch(() => { if (alive) setInspired([]); });
+    return () => { alive = false; };
+  }, [item.id]);
   const [script, setScript] = useState<Record<string, string>>(item.script ?? {});
   const [error, setError] = useState('');
 
@@ -70,6 +79,14 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
             <option value="">Formato</option>{FORMATS.map((p) => <option key={p}>{p}</option>)}
           </select>
         </div>
+        {inspired.length > 0 && (
+          <p data-inspired className="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+            Inspirado en:
+            {inspired.map((r) => (
+              <a key={r.id} href="/references/" title={[r.creator, r.hook_pattern].filter(Boolean).join(' · ')} className="rounded-full bg-zinc-800 px-2 py-0.5 text-zinc-200 hover:underline">{r.title}{r.creator ? ` · ${r.creator}` : ''}</a>
+            ))}
+          </p>
+        )}
         {f.format === 'carousel' && (
           <section data-carousel className="space-y-2 rounded-lg border border-zinc-700 bg-zinc-950 p-3">
             <p className="text-xs font-semibold text-zinc-300">CarruselOS <span className="font-normal text-zinc-500">· solo seguimiento: aprobar, generar y publicar siguen siendo cosa tuya</span></p>
