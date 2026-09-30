@@ -12,7 +12,11 @@ export interface TaskDef {
   /** Valida la entrada y la congela (snapshot) para que el trabajo no dependa de ediciones posteriores. */
   prepare(db: Db, raw: unknown): { input: Record<string, unknown>; target_id: string | null };
   outputSchema: Record<string, unknown>;
-  validateOutput(output: unknown): boolean;
+  /** Esquema de salida que depende de la entrada (p. ej. número de versiones). Si falta, se usa `outputSchema`. */
+  schemaFor?(input: Record<string, unknown>): Record<string, unknown>;
+  /** Tiempo máximo (s) que se le pide al worker; por defecto JOB_TIMEOUT_S. */
+  timeoutS?(input: Record<string, unknown>): number;
+  validateOutput(output: unknown, input?: Record<string, unknown>): boolean;
   build(input: Record<string, unknown>, voice: VoiceProfile): { system: string; prompt: string };
   /** Defectos de estilo/datos del borrador; si son graves se pide una segunda pasada automática. */
   review?(output: unknown, input: Record<string, unknown>, voice: VoiceProfile): LintIssue[];
@@ -285,6 +289,103 @@ const caption: TaskDef = {
   },
 };
 
+/* ======================= paquete completo: hook + guion + caption, N versiones, una sola llamada ======================= */
+export const MAX_VERSIONS = 5;
+const PACK_SCRIPT_KEYS = SCRIPT_KEYS.filter((k) => k !== 'hook'); // el hook va aparte: una sola copia, sin poder contradecirse
+const VersionOut = z.object({
+  angle: short(40), hook: short(220),
+  ...(Object.fromEntries(PACK_SCRIPT_KEYS.map((k) => [k, short(600)])) as Record<(typeof PACK_SCRIPT_KEYS)[number], z.ZodString>),
+  caption: short(1200),
+}).strict();
+const PackOut = z.object({ versions: z.array(VersionOut).min(1).max(MAX_VERSIONS) }).strict();
+const PackIn = ContentIn.extend({ versions: z.number().int().min(1).max(MAX_VERSIONS).default(3) }).strict();
+type PackSection = 'hook' | 'script' | 'caption';
+
+const packSchema = (n: number) => ({
+  type: 'object', additionalProperties: false, required: ['versions'],
+  properties: {
+    versions: {
+      type: 'array', minItems: n, maxItems: n,
+      items: {
+        type: 'object', additionalProperties: false, required: ['angle', 'hook', ...PACK_SCRIPT_KEYS, 'caption'],
+        properties: { angle: strSchema(40), hook: strSchema(220), ...Object.fromEntries(PACK_SCRIPT_KEYS.map((k) => [k, strSchema(600)])), caption: strSchema(1200) },
+      },
+    },
+  },
+});
+
+const pack: TaskDef = {
+  prepare(db, raw) {
+    const p = PackIn.safeParse(raw);
+    if (!p.success) throw new TaskError('invalid');
+    return { input: { ...snapshot(db, p.data.content_id, p.data), versions: p.data.versions }, target_id: p.data.content_id };
+  },
+  outputSchema: packSchema(3),
+  schemaFor: (input) => packSchema(Number(input.versions) || 3),
+  // más versiones = más texto que escribir: 120 s para 1 versión, +30 s por versión extra hasta 240 s
+  timeoutS: (input) => 90 + 30 * (Number(input.versions) || 3),
+  validateOutput(o, input) {
+    const r = PackOut.safeParse(o);
+    return r.success && (input?.versions === undefined || r.data.versions.length === Number(input.versions));
+  },
+  build(input, voice) {
+    const s = input as unknown as ContentSnapshot & { versions: number };
+    const n = s.versions;
+    const hookLine = s.current.hook ? [`Hook actual (solo contexto; las versiones deben ser NUEVAS y distintas): """${s.current.hook}"""`] : [];
+    return {
+      system: systemFor(voice, [
+        `Escribe ${n === 1 ? '1 VERSIÓN COMPLETA' : `${n} VERSIONES COMPLETAS`} para este contenido. Cada versión lleva, todo junto y coherente entre sí:`,
+        '- angle: el ángulo de esa versión en 1 a 3 palabras (curiosidad, contraste, confesión, error común, pregunta directa…).',
+        '- hook: máximo 14 palabras, que se diga en voz alta sin sonar a anuncio.',
+        `- ${PACK_SCRIPT_KEYS.join(', ')}: el guion HABLADO de un video de unos 45 segundos, una clave por parte (${PACK_SCRIPT_KEYS.map((k) => `${k} = ${PART_LABEL[k]}`).join('; ')}). Frases cortas, como se dicen en voz alta; máximo 3 frases por parte. "aplicacion" muestra algo concreto (pasos o demo), no teoría. "resultado" usa un dato REAL de los hechos o pon [DATO]. "cta" sigue el estilo de sus cierres. El guion continúa desde el hook: no lo repitas.`,
+        '- caption: para publicar, 2 a 4 párrafos muy cortos que abren una duda y se resuelven en el contenido; termina con la acción concreta del cta. SIN hashtags. Cero o un emoji, al final.',
+        n > 1 ? `Las ${n} versiones deben ser DISTINTAS de verdad: distinto ángulo, distinto arranque y distinta estructura, no la misma con sinónimos. Ninguna repite el arranque de otra.` : '',
+      ].filter(Boolean).join('\n')),
+      prompt: userBlock(s, hookLine),
+    };
+  },
+  review(output, input, voice) {
+    const s = input as unknown as ContentSnapshot;
+    const src = sourceOf(s, voice);
+    return PackOut.parse(output).versions.flatMap((v, i) => {
+      const base = { banned: voice.banned, source: src, examples: exOf(voice) };
+      const tag = `v${i + 1} `;
+      return [
+        ...lintText(v.hook, { ...base, field: `${tag}hook` }),
+        ...PACK_SCRIPT_KEYS.flatMap((k) => lintText(v[k], { ...base, field: `${tag}${k}` })),
+        ...lintText(v.caption, { ...base, field: `${tag}caption`, noHashtags: true }),
+      ];
+    });
+  },
+  select(output, selection) {
+    const sel = z.object({
+      version: z.number().int().min(0).max(MAX_VERSIONS - 1),
+      sections: z.array(z.enum(['hook', 'script', 'caption'])).min(1).max(3).optional(),
+    }).strict().safeParse(selection);
+    const vs = PackOut.parse(output).versions;
+    if (!sel.success || sel.data.version >= vs.length) throw new TaskError('invalid');
+    const v = vs[sel.data.version];
+    const want = new Set<PackSection>(sel.data.sections ?? ['hook', 'script', 'caption']);
+    const picked: Record<string, string> = { angle: v.angle };
+    if (want.has('hook')) picked.hook = v.hook;
+    if (want.has('script')) for (const k of PACK_SCRIPT_KEYS) picked[k] = v[k];
+    if (want.has('caption')) picked.caption = v.caption;
+    return { versions: [picked] };
+  },
+  apply(db, input, output, now) {
+    const vs = z.object({ versions: z.array(VersionOut.partial()).length(1) }).strict().safeParse(output); // hay que elegir UNA versión
+    if (!vs.success) throw new TaskError('invalid');
+    const v = vs.data.versions[0];
+    const script = Object.fromEntries(PACK_SCRIPT_KEYS.filter((k) => v[k] !== undefined).map((k) => [k, v[k] as string]));
+    // un solo write: hook, guion y caption entran juntos o no entra nada
+    writeContent(db, String(input.content_id), {
+      ...(v.hook !== undefined && { hook: v.hook }),
+      ...(v.caption !== undefined && { caption: v.caption }),
+      ...(Object.keys(script).length > 0 && { script }),
+    }, now);
+  },
+};
+
 const humanize: TaskDef = {
   prepare(db, raw) {
     const p = z.object({ content_id: z.string().min(1).max(64), field: z.enum(FIELDS), text: z.string().max(3000).optional() }).strict().safeParse(raw);
@@ -318,5 +419,5 @@ const humanize: TaskDef = {
   },
 };
 
-export const TASKS: Record<string, TaskDef> = { tag_idea: tagIdea, hooks, script, caption, humanize };
+export const TASKS: Record<string, TaskDef> = { tag_idea: tagIdea, hooks, script, caption, pack, humanize };
 export { feedbackFor };
