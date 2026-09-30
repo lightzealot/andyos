@@ -30,6 +30,7 @@ export interface Item {
   ai_generated: boolean;
   carousel_folder: string | null;
   carousel_state: string | null;
+  created_at?: string;
   updated_at: string;
 }
 
