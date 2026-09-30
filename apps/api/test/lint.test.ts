@@ -120,3 +120,24 @@ describe('marcadores pendientes ([DATO], [VIVENCIA])', () => {
     expect(lintText('Pasé de [DATO 12] a [DATO 40]', { banned: [], source: '' }).map((i) => i.type)).toEqual(['pending']);
   });
 });
+
+describe('citas inventadas', () => {
+  const t = (text: string, source = '') => lintText(text, { banned: [], source }).map((i) => i.type);
+  it('marca una cita larga que no consta en tus datos (comillas rectas, curvas y angulares)', () => {
+    expect(t('Ya no me entero por un seguidor que me escribe "oye, no me llegó nada".')).toContain('invented_quote');
+    expect(t('Me dijo “esto no me había pasado nunca antes”.')).toContain('invented_quote');
+    expect(t('Me escribió «no entiendo cómo lo hiciste tan rápido».')).toContain('invented_quote');
+  });
+  it('acepta una cita que sí viene de tus notas o hechos', () => {
+    expect(t('Como dije: "esto no me había pasado nunca antes".', 'Notas: esto no me había pasado nunca antes')).not.toContain('invented_quote');
+    expect(t('Dice "OYE, NO ME LLEGÓ NADA" a menudo', 'un seguidor dijo oye, no me llegó nada')).not.toContain('invented_quote');
+  });
+  it('no molesta con palabras clave ni citas cortas', () => {
+    expect(t('Comenta "AUTOMATIZA" y te envío el flujo.')).toEqual([]);
+    expect(t('Todos muestran resultados "sin pagar nada".')).toEqual([]);
+  });
+  it('es un defecto fuerte y la retroalimentación lo explica', () => {
+    expect(isStrong({ type: 'invented_quote', detail: 'x' })).toBe(true);
+    expect(feedbackFor([{ type: 'invented_quote', detail: 'oye no me llegó', field: 'resultado' }])).toMatch(/VIVENCIA/);
+  });
+});
