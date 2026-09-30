@@ -1,6 +1,6 @@
 import type { Item } from './api';
 
-/** Estados del Pipeline de CarruselOS (solo seguimiento; no aprueban ni publican nada en AndyOS). */
+/** Estados del Pipeline de CarruselOS (solo seguimiento; no aprueban ni publican nada en FactoryOS). */
 export const CAROUSEL_STATES = ['enfoque', 'narrativa', 'cta', 'borradores', 'preview', 'aprobado', 'exportado', 'publicado'] as const;
 export type CarouselState = (typeof CAROUSEL_STATES)[number];
 
@@ -26,7 +26,7 @@ export function startPrompt(item: Pick<Item, 'title' | 'hook' | 'caption' | 'not
     '',
     `Tema: ${item.title}`,
     folder ? `Carpeta: proyectos/${folder}` : 'Carpeta: (propónmela con el formato AAAA-MM-DD-tema)',
-    parts.length ? `\nMaterial que ya tengo en AndyOS (bórralo o ajústalo si no sirve):\n${parts.join('\n')}` : '',
+    parts.length ? `\nMaterial que ya tengo en FactoryOS (bórralo o ajústalo si no sirve):\n${parts.join('\n')}` : '',
     item.caption.trim() ? `\nCaption borrador: ${item.caption.trim()}` : '',
     item.notes.trim() ? `\nNotas: ${item.notes.trim()}` : '',
     '',

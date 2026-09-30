@@ -107,7 +107,7 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
               {copied && <span className="text-zinc-400">{copied}</span>}
             </div>
             {promptText && <textarea readOnly rows={6} className={`${input} text-xs text-zinc-400`} value={promptText} onFocus={(e) => e.currentTarget.select()} />}
-            <p className="text-xs text-zinc-500">El estado lo actualizas tú a mano: AndyOS no ve tu disco. El de aquí y el de la aprobación del Pipeline son independientes.</p>
+            <p className="text-xs text-zinc-500">El estado lo actualizas tú a mano: FactoryOS no ve tu disco. El de aquí y el de la aprobación del Pipeline son independientes.</p>
           </section>
         )}
         <label className="block text-xs text-zinc-400">Fecha objetivo de publicación

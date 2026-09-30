@@ -154,7 +154,7 @@
         "resource": "message",
         "operation": "sendMessage",
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "No pude guardar la idea en AndyOS. Reintentalo mas tarde.",
+        "text": "No pude guardar la idea en FactoryOS. Reintentalo mas tarde.",
         "additionalFields": {
           "appendAttribution": false
         }

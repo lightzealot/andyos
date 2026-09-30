@@ -52,7 +52,7 @@ export function registerIdeas(app: FastifyInstance, db: Db, inboxSecret: string,
     return id;
   }
 
-  // Webhook de entrada (n8n → AndyOS). Autenticado con secreto compartido, no con cookie.
+  // Webhook de entrada (n8n → FactoryOS). Autenticado con secreto compartido, no con cookie.
   app.post('/webhooks/inbox', { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } }, async (req, reply) => {
     const secret = req.headers['x-webhook-secret'];
     if (typeof secret !== 'string' || !passwordMatches(secret, inboxSecret)) {

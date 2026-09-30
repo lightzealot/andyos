@@ -25,7 +25,7 @@ export function Icon({ name, className = 'h-5 w-5' }: { name: string; className?
 export function SideNav({ current }: { current: string }) {
   return (
     <nav aria-label="Principal" className="glass flex min-w-0 items-center gap-2 rounded-[1.75rem] p-2 lg:flex-col lg:py-5">
-      <span className="hidden text-lg font-black lg:block" style={{ color: ORANGE }} aria-hidden>▸</span>
+      <span className="hidden text-lg font-black lg:block" style={{ color: ORANGE }} title="FactoryOS · Todo tu contenido, en piloto automático">▸</span>
       <div className="flex min-w-0 flex-1 items-center justify-around gap-1 lg:mt-4 lg:flex-none lg:flex-col lg:justify-start lg:gap-2">
         {NAV.map(([icon, href, label]) => (
           <Link key={href} href={href} aria-label={label} data-nav={label}

@@ -19,18 +19,18 @@ Comportamiento: guarda solo texto; un mensaje repetido (reintento) no duplica la
 Estado de verificación: estructura y nombres de parámetros contrastados con las definiciones de tipos de tu instancia (Telegram Trigger 1.5, Telegram 1.2, HTTP Request 4.5, If 2.3). **Aún no se ha importado ni ejecutado en n8n.**
 
 ## `andyos-ping-disparable.json` — plantilla para el botón «Disparar» del panel
-Webhook `POST /webhook/andyos-ping` con Header Auth → nodo *Recibido*. Sirve para probar el panel y como plantilla de cualquier workflow que quieras lanzar desde AndyOS.
+Webhook `POST /webhook/andyos-ping` con Header Auth → nodo *Recibido*. Sirve para probar el panel y como plantilla de cualquier workflow que quieras lanzar desde FactoryOS.
 
-Para que un workflow aparezca con botón **Disparar** en `/n8n/` deben cumplirse las cuatro condiciones (si falta una, no se puede lanzar desde AndyOS):
+Para que un workflow aparezca con botón **Disparar** en `/n8n/` deben cumplirse las cuatro condiciones (si falta una, no se puede lanzar desde FactoryOS):
 1. Está **activo**.
 2. Tiene la etiqueta **`andyos-trigger`** (añádela a mano en n8n).
 3. Su nodo Webhook es **POST** con **Authentication = Header Auth**.
 4. La credencial Header Auth es **«AndyOS Trigger Secret»**: *Name* `X-Webhook-Secret`, *Value* = `N8N_TRIGGER_SECRET`.
 
-AndyOS envía `{"source":"andyos","payload":{}}` a `https://n8n.andresgomez.store/webhook/<path>` con la cabecera `X-Webhook-Secret`.
+FactoryOS envía `{"source":"andyos","payload":{}}` a `https://n8n.andresgomez.store/webhook/<path>` con la cabecera `X-Webhook-Secret`.
 
 ### Clave de API de n8n para el panel (solo lectura)
 *Settings → n8n API → Create an API key*. Alcances: **`workflow:list`** y **`execution:list`** únicamente (sin escritura, sin reintentos, sin activar/desactivar). Verificado en la especificación OpenAPI que sirve tu propia instancia (`/api/v1/openapi.yml`). **Nota:** la API pública de tu versión no tiene endpoint para ejecutar workflows; por eso el disparo va por webhook.
 
 ## `alertas-cola.json` — Avisos de la cola de IA a Telegram
-Webhook `POST /webhook/andyos-alerta` con Header Auth («AndyOS Alert Secret», *Name* `X-Webhook-Secret`, *Value* = `ALERT_WEBHOOK_SECRET`) → mensaje a tu chat con el bot de AndyOS. Pon tu chat id en el nodo *Avisar por Telegram*. Lo llama la API cuando la cola se pausa (cuota, sesión, facturación, uso alto).
+Webhook `POST /webhook/andyos-alerta` con Header Auth («AndyOS Alert Secret», *Name* `X-Webhook-Secret`, *Value* = `ALERT_WEBHOOK_SECRET`) → mensaje a tu chat con el bot de FactoryOS. Pon tu chat id en el nodo *Avisar por Telegram*. Lo llama la API cuando la cola se pausa (cuota, sesión, facturación, uso alto).

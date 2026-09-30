@@ -68,10 +68,10 @@ Solo web: usa `GET/PATCH /ai/queue`, `GET /ai/jobs` y `POST /ai/jobs/:id/cancel`
 - Prueba: e2e con navegador real (estado, pausa/reanudar, medidores, historial, filtro, cancelar, límites válidos e inválidos, auto_tag, móvil). El menú ganó una séptima entrada y ahora hace salto de línea en pantallas estrechas.
 
 ## Módulo 2.6: CarruselOS ligero (solo seguimiento)
-Decisión C del plan, en su versión mínima. **AndyOS no ejecuta, aprueba ni publica carruseles**: la API corre en Easypanel y no ve tu carpeta local, así que el estado lo anotas tú.
+Decisión C del plan, en su versión mínima. **FactoryOS no ejecuta, aprueba ni publica carruseles**: la API corre en Easypanel y no ve tu carpeta local, así que el estado lo anotas tú.
 - **Datos:** dos columnas nuevas en `content_details` (`carousel_folder`, `carousel_state`), añadidas con `ALTER TABLE` si faltan (migración probada sobre una base sin ellas, sin perder datos). Aceptadas en `POST/PATCH /items`.
 - **Validación:** la carpeta debe ser un nombre simple (`^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$`: sin `/`, `..`, espacios ni punto inicial); la API nunca toca el disco. El estado es uno de `enfoque → narrativa → cta → borradores → preview → aprobado → exportado → publicado`, los mismos del Pipeline de Notion/CarruselOS.
-- **Independiente de la aprobación:** cambiar carpeta o estado no aprueba, no retira una aprobación ya dada y no salta la compuerta de Programado/Publicado (409 igual que antes). El «aprobado» de CarruselOS y la aprobación humana de AndyOS son cosas distintas.
+- **Independiente de la aprobación:** cambiar carpeta o estado no aprueba, no retira una aprobación ya dada y no salta la compuerta de Programado/Publicado (409 igual que antes). El «aprobado» de CarruselOS y la aprobación humana de FactoryOS son cosas distintas.
 - **Web:** en el detalle de una tarjeta con formato **carousel** aparece la sección «CarruselOS»: carpeta (con «Sugerir carpeta» = `AAAA-MM-DD-titulo`), estado y «Copiar prompt de arranque», un texto para pegar en Claude Code dentro de CarruselOS con el tema, la carpeta y el material que ya tengas (hook, guion, caption, notas). Ese prompt pide expresamente preguntar lo que falte y no generar imágenes ni publicar sin tu OK. El tablero muestra una insignia 🎠 con el estado.
 - **Fuera de alcance (a propósito):** sincronizar el estado leyendo `brief.md` desde el Mac mini con el worker. Sería una vía nueva (lectura local + endpoint); solo si lo pides.
 
@@ -84,17 +84,17 @@ Reutiliza el aviso que ya existe (API → webhook `andyos-alerta` de n8n → tu 
   Máximo 5 líneas por sección («… y N más»), ordenadas por urgencia. Ignora archivadas e ideas.
 - **Una vez al día:** cuando pasa la hora local configurada; el día se guarda en la base (`app_meta`), así que reiniciar la API no duplica. El día se marca **antes** de enviar: si el aviso se pierde, no se reintenta ese día (el aviso es de mejor esfuerzo, como los de la cola).
 - **Rutas (sesión):** `GET /digest` muestra lo que se enviaría ahora (no envía ni marca nada); `POST /digest/send` manda un mensaje de prueba a Telegram (no cuenta como el del día; si no hay nada pendiente manda un texto de prueba). Ambas existen solo si `DIGEST_TZ` está definida.
-- **Límite conocido:** el nodo de Telegram antepone «AndyOS: » al mensaje y lo envía como texto plano; los títulos de tus tarjetas viajan tal cual.
+- **Límite conocido:** el nodo de Telegram antepone «FactoryOS: » al mensaje (si tu workflow es el antiguo, aún dirá «AndyOS: »: cambia ese texto en el nodo *Avisar por Telegram*) y lo envía como texto plano; los títulos de tus tarjetas viajan tal cual.
 - Pruebas: 16 tests (zona horaria y día local, cada categoría, límites, una vez al día, reinicio, día vacío, rutas y secreto) con 3 mutaciones detectadas, más una prueba con el proceso real contra un webhook falso.
 
 ## Dashboard (`/dashboard/`) · ver también `05-diseno-visual.md`
-Pantalla nueva con el diseño «glassy» de `Dash1.PNG` (Drive) adaptado a AndyOS: barra lateral de iconos, panel central y panel derecho de cristal oscuro sobre fondo cálido, tarjetas blancas y acento naranja. **Solo web: no cambia la API**; usa `GET /items?type=content`, `GET /ideas` y `GET /ai/queue` y se refresca cada 60 s.
+Pantalla nueva con el diseño «glassy» de `Dash1.PNG` (Drive) adaptado a FactoryOS: barra lateral de iconos, panel central y panel derecho de cristal oscuro sobre fondo cálido, tarjetas blancas y acento naranja. **Solo web: no cambia la API**; usa `GET /items?type=content`, `GET /ideas` y `GET /ai/queue` y se refresca cada 60 s.
 - **Tarjetas:** ideas nuevas (con barras de los últimos 10 días), en aprobación (cuántas y la más antigua), cola de IA (trabajos de 24 h frente al límite) y cuota de Claude (5 h y semana; una ventana vencida se muestra «—»). Sin `WORKER_TOKEN` las de IA muestran «—».
 - **Actividad:** curva de ideas creadas + tarjetas modificadas por día (semanal o mensual). Es una aproximación: una tarjeta solo cuenta en el día de su **última** modificación.
 - **Próxima publicación**, **En el pipeline** (las 3 más avanzadas sin cerrar, la primera destacada) y a la derecha **calendario** (hoy, con fecha, vencida) y **Programado**.
 - **Captura rápida** en la cabecera: escribe una idea y Enter la guarda en el Inbox (`POST /ideas`).
 - Los iconos laterales enlazan a todas las pantallas; también hay «Dashboard» en el menú superior. Zona horaria: la del navegador.
-- **No hay métricas de Instagram** (alcance, likes, seguidores): AndyOS no las guarda. Eso requeriría integrar la API de Instagram (o Windsor) y sería otro módulo.
+- **No hay métricas de Instagram** (alcance, likes, seguidores): FactoryOS no las guarda. Eso requeriría integrar la API de Instagram (o Windsor) y sería otro módulo.
 - Pruebas: 7 unitarias de la lógica de datos y e2e en navegador real (datos, calendario, captura, navegación, móvil sin scroll horizontal). No se probó en producción.
 
 ## Paquete completo: hook + guion + caption en una sola llamada, con N versiones

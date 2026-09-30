@@ -1,4 +1,4 @@
-# Diseño visual de AndyOS (estilo «glassy»)
+# Diseño visual de FactoryOS (estilo «glassy»)
 
 Origen: `Dash1.PNG` (Drive), adaptado. Vale para **todas** las pantallas actuales y las que vengan.
 

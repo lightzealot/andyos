@@ -95,7 +95,7 @@
         "resource": "message",
         "operation": "sendMessage",
         "chatId": "REEMPLAZAR_CON_TU_CHAT_ID",
-        "text": "ALERTA: fallo el respaldo diario de AndyOS. Revisa la ejecucion en n8n; hoy no hay copia nueva.",
+        "text": "ALERTA: fallo el respaldo diario de FactoryOS. Revisa la ejecucion en n8n; hoy no hay copia nueva.",
         "additionalFields": {
           "appendAttribution": false
         }

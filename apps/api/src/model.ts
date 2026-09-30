@@ -13,7 +13,7 @@ export type Status = (typeof STATUSES)[number];
 export const GATED: readonly Status[] = ['programado', 'publicado', 'analizado'];
 
 export const PLATFORMS = ['instagram', 'tiktok', 'youtube', 'linkedin', 'x'] as const;
-/** Estados del Pipeline de CarruselOS (solo seguimiento: no aprueba ni publica nada en AndyOS). */
+/** Estados del Pipeline de CarruselOS (solo seguimiento: no aprueba ni publica nada en FactoryOS). */
 export const CAROUSEL_STATES = ['enfoque', 'narrativa', 'cta', 'borradores', 'preview', 'aprobado', 'exportado', 'publicado'] as const;
 
 export const FORMATS = ['reel', 'carousel', 'short', 'post', 'video', 'story'] as const;

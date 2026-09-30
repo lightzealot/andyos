@@ -1,4 +1,8 @@
-# AndyOS
+# FactoryOS
+
+> **Todo tu contenido, en piloto automático.**
+
+_Nombre anterior: AndyOS. Por compatibilidad se conservan los identificadores internos `andyos` (repositorio, servicio `andyos-api`, `/data/andyos.db`, LaunchAgent `com.andyos.worker`, rama de despliegue, nombres de credenciales y workflows de n8n). Los dominios siguen siendo `*.andresgomez.store`._
 
 Personal & Creator OS. Monorepo: `apps/web` (Next.js estático → Netlify), `apps/api` (Fastify + SQLite → VPS/Easypanel). Diseño y decisiones: [`docs/00-diseno-base.md`](docs/00-diseno-base.md).
 

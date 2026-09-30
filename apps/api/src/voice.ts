@@ -35,7 +35,7 @@ export const DEFAULT_FACTS = [
   'Tiene un homelab con Ubuntu y Docker en casa.',
   'Tiene su propio n8n en un VPS.',
   'Construyó su propia plataforma de automatización de Instagram con n8n y la API oficial de Meta: alguien comenta una palabra clave y recibe un DM con un recurso.',
-  'Creó CarruselOS, su sistema para producir carruseles con IA, y AndyOS, su panel para producir contenido.',
+  'Creó CarruselOS, su sistema para producir carruseles con IA, y FactoryOS, su panel para producir contenido en piloto automático.',
   'Paga planes de IA (Claude Pro y ChatGPT Plus) y cree que la IA gratis se queda corta.',
   'Planifica su contenido en Notion.',
 ];

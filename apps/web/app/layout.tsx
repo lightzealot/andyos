@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'AndyOS', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'FactoryOS', description: 'Todo tu contenido, en piloto automático', robots: { index: false, follow: false } };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

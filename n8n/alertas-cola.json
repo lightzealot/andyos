@@ -29,7 +29,7 @@
         "resource": "message",
         "operation": "sendMessage",
         "chatId": "REEMPLAZAR_CON_TU_CHAT_ID",
-        "text": "={{ 'AndyOS: ' + $json.body.message + ($json.body.until ? '\\nSe reanuda: ' + $json.body.until : '') }}",
+        "text": "={{ 'FactoryOS: ' + $json.body.message + ($json.body.until ? '\\nSe reanuda: ' + $json.body.until : '') }}",
         "additionalFields": {
           "appendAttribution": false
         }

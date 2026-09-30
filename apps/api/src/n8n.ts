@@ -21,7 +21,7 @@ interface N8nExecution {
   startedAt?: string | null; stoppedAt?: string | null;
 }
 
-/** Ruta del webhook si el workflow es disparable desde AndyOS; si no, null. */
+/** Ruta del webhook si el workflow es disparable desde FactoryOS; si no, null. */
 export function triggerPath(w: N8nWorkflow): string | null {
   if (!w.active || w.isArchived) return null;
   if (!w.tags?.some((t) => t.name === TRIGGER_TAG)) return null;
