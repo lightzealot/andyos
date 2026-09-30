@@ -121,3 +121,6 @@ Las referencias que guardas en `/references/` ahora sirven de **modelo de estruc
 - Pruebas: 14 de API (snapshot, prompt, validación, copias, `linked`) con 5 mutaciones detectadas, y e2e en navegador real (selector, máximo 3, preselección, prompt, móvil).
 
 **En la tarjeta del Pipeline:** el detalle de una tarjeta muestra «Inspirado en: <título> · <creador>» cuando la enlazaste a una referencia con «Crear contenido inspirado» (enlaza a `/references/`). Es solo web: usa `GET /references?content_id=` y filtra las `linked`. Si falla la consulta o no hay enlaces, la línea no aparece.
+
+## Plataforma predeterminada: Instagram
+Todo contenido **nuevo** sin plataforma (crear en el tablero, promover una idea, «Crear contenido inspirado» desde una referencia sin plataforma) sale con `platform = instagram` (`DEFAULT_PLATFORM` en `content.ts`). Una plataforma elegida o heredada de la referencia se respeta, y se puede cambiar después en la tarjeta. **Las tarjetas que ya existían sin plataforma no se tocan** (no hay migración).

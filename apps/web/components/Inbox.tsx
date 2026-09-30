@@ -95,7 +95,7 @@ function IdeaRow({ idea, ai, onChange }: { idea: Idea; ai: boolean; onChange: ()
           {ai && <Suggestion idea={idea} onChange={onChange} />}
           <div className="flex flex-wrap items-center gap-2">
             <select value={platform} onChange={(e) => setPlatform(e.target.value)} className={input} aria-label="Plataforma">
-              <option value="">Plataforma</option>{PLATFORMS.map((p) => <option key={p}>{p}</option>)}
+              <option value="">Instagram (predeterminada)</option>{PLATFORMS.filter((p) => p !== 'instagram').map((p) => <option key={p}>{p}</option>)}
             </select>
             <select value={format} onChange={(e) => setFormat(e.target.value)} className={input} aria-label="Formato">
               <option value="">Formato</option>{FORMATS.map((f) => <option key={f}>{f}</option>)}

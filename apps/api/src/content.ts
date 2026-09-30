@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from './db.js';
 
+/** Plataforma de publicación predeterminada de todo contenido nuevo (se puede cambiar en la tarjeta). */
+export const DEFAULT_PLATFORM = 'instagram';
+
 export interface NewContent {
   title: string;
   status: string;
@@ -31,7 +34,7 @@ export function insertContent(db: Db, d: NewContent): string {
     db.prepare(`INSERT INTO content_details (work_item_id, platform, format, pillar, hook, script, caption,
                 scheduled_at, published_at, published_url, asset_links, cta_keyword, carousel_folder, carousel_state)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(id, d.platform ?? null, d.format ?? null, d.pillar ?? null, d.hook ?? '',
+      .run(id, d.platform ?? DEFAULT_PLATFORM, d.format ?? null, d.pillar ?? null, d.hook ?? '',
         JSON.stringify(d.script ?? {}), d.caption ?? '', d.scheduled_at ?? null,
         d.published_at ?? null, d.published_url ?? null, JSON.stringify(d.asset_links ?? []),
         d.cta_keyword ?? null, d.carousel_folder ?? null, d.carousel_state ?? null);
