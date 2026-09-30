@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 const LINKS = [
+  { href: '/dashboard/', label: 'Dashboard' },
   { href: '/inbox/', label: 'Inbox' },
   { href: '/', label: 'Pipeline' },
   { href: '/calendar/', label: 'Calendario' },

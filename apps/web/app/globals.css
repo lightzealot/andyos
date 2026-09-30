@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+/* Dashboard: fondo cálido desenfocado y paneles de cristal */
+.dash-bg {
+  background:
+    radial-gradient(60rem 40rem at 10% 0%, rgba(238, 108, 43, 0.28), transparent 60%),
+    radial-gradient(50rem 40rem at 95% 100%, rgba(122, 45, 12, 0.45), transparent 60%),
+    radial-gradient(40rem 30rem at 60% 40%, rgba(120, 113, 108, 0.25), transparent 65%),
+    #14110f;
+}
+.glass {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}

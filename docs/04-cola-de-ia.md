@@ -86,3 +86,13 @@ Reutiliza el aviso que ya existe (API → webhook `andyos-alerta` de n8n → tu 
 - **Rutas (sesión):** `GET /digest` muestra lo que se enviaría ahora (no envía ni marca nada); `POST /digest/send` manda un mensaje de prueba a Telegram (no cuenta como el del día; si no hay nada pendiente manda un texto de prueba). Ambas existen solo si `DIGEST_TZ` está definida.
 - **Límite conocido:** el nodo de Telegram antepone «AndyOS: » al mensaje y lo envía como texto plano; los títulos de tus tarjetas viajan tal cual.
 - Pruebas: 16 tests (zona horaria y día local, cada categoría, límites, una vez al día, reinicio, día vacío, rutas y secreto) con 3 mutaciones detectadas, más una prueba con el proceso real contra un webhook falso.
+
+## Dashboard (`/dashboard/`)
+Pantalla nueva con el diseño «glassy» de `Dash1.PNG` (Drive) adaptado a AndyOS: barra lateral de iconos, panel central y panel derecho de cristal oscuro sobre fondo cálido, tarjetas blancas y acento naranja. **Solo web: no cambia la API**; usa `GET /items?type=content`, `GET /ideas` y `GET /ai/queue` y se refresca cada 60 s.
+- **Tarjetas:** ideas nuevas (con barras de los últimos 10 días), en aprobación (cuántas y la más antigua), cola de IA (trabajos de 24 h frente al límite) y cuota de Claude (5 h y semana; una ventana vencida se muestra «—»). Sin `WORKER_TOKEN` las de IA muestran «—».
+- **Actividad:** curva de ideas creadas + tarjetas modificadas por día (semanal o mensual). Es una aproximación: una tarjeta solo cuenta en el día de su **última** modificación.
+- **Próxima publicación**, **En el pipeline** (las 3 más avanzadas sin cerrar, la primera destacada) y a la derecha **calendario** (hoy, con fecha, vencida) y **Programado**.
+- **Captura rápida** en la cabecera: escribe una idea y Enter la guarda en el Inbox (`POST /ideas`).
+- Los iconos laterales enlazan a todas las pantallas; también hay «Dashboard» en el menú superior. Zona horaria: la del navegador.
+- **No hay métricas de Instagram** (alcance, likes, seguidores): AndyOS no las guarda. Eso requeriría integrar la API de Instagram (o Windsor) y sería otro módulo.
+- Pruebas: 7 unitarias de la lógica de datos y e2e en navegador real (datos, calendario, captura, navegación, móvil sin scroll horizontal). No se probó en producción.
