@@ -40,6 +40,26 @@ const backupSecret = process.env.BACKUP_WEBHOOK_SECRET || undefined;
 if (backupSecret && backupSecret.length < 32) throw new Error('BACKUP_WEBHOOK_SECRET debe tener al menos 32 caracteres');
 if (backupSecret && backupSecret === inboxSecret) throw new Error('BACKUP_WEBHOOK_SECRET debe ser distinto de INBOX_WEBHOOK_SECRET');
 
+const workerToken = process.env.WORKER_TOKEN || undefined;
+if (workerToken) {
+  if (workerToken.length < 32) throw new Error('WORKER_TOKEN debe tener al menos 32 caracteres');
+  if (new Set([workerToken, inboxSecret, backupSecret ?? '', secret]).size < (backupSecret ? 4 : 3)) {
+    throw new Error('WORKER_TOKEN debe ser distinto de los demás secretos');
+  }
+}
+const alertVars = [process.env.ALERT_WEBHOOK_URL, process.env.ALERT_WEBHOOK_SECRET];
+if (alertVars.some(Boolean) && !alertVars.every(Boolean)) {
+  console.warn('AVISO: avisos de la cola DESACTIVADOS; define ALERT_WEBHOOK_URL y ALERT_WEBHOOK_SECRET juntas.');
+}
+let alert;
+if (alertVars.every(Boolean)) {
+  const url = process.env.ALERT_WEBHOOK_URL!;
+  if (!/^https:\/\//.test(url) && !/^http:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(url)) {
+    throw new Error('ALERT_WEBHOOK_URL debe ser https:// (http solo para localhost)');
+  }
+  alert = { url, secret: process.env.ALERT_WEBHOOK_SECRET! };
+}
+
 const app = await buildApp(openDb(dbPath), {
   password: required('ANDYOS_PASSWORD'),
   sessionSecret: secret,
@@ -50,6 +70,8 @@ const app = await buildApp(openDb(dbPath), {
   trustProxy: process.env.TRUST_PROXY === 'true',
   n8n,
   backupSecret,
+  workerToken,
+  alert,
 });
 
 const port = Number(process.env.PORT ?? 8787);

@@ -1,0 +1,69 @@
+{
+  "name": "AndyOS - Alertas de la cola",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "andyos-alerta",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Alerta de AndyOS",
+      "webhookId": "6f0f4b1e-3c55-4f6e-9a4e-a1d0c2b7e003",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR",
+          "name": "AndyOS Alert Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "REEMPLAZAR_CON_TU_CHAT_ID",
+        "text": "={{ 'AndyOS: ' + $json.body.message + ($json.body.until ? '\\nSe reanuda: ' + $json.body.until : '') }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "name": "Avisar por Telegram",
+      "credentials": {
+        "telegramApi": {
+          "id": "REEMPLAZAR",
+          "name": "Telegram AndyOS"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Alerta de AndyOS": {
+      "main": [
+        [
+          {
+            "node": "Avisar por Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
