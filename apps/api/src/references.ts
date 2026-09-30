@@ -41,9 +41,13 @@ export function registerReferences(app: FastifyInstance, db: Db) {
     return r ? parse(r) : undefined;
   };
 
-  app.get('/references', async () => {
+  // Con ?content_id=X cada referencia trae `linked`: ya la enlazaste a ese contenido con «Crear contenido inspirado».
+  app.get('/references', async (req) => {
+    const { content_id } = z.object({ content_id: z.string().min(1).max(64).optional() }).parse(req.query);
     const rows = db.prepare(`${SELECT} ORDER BY w.updated_at DESC`).all() as Row[];
-    return { references: rows.map(parse) };
+    if (!content_id) return { references: rows.map(parse) };
+    const linked = new Set((db.prepare("SELECT to_id FROM item_links WHERE from_id = ? AND kind = 'inspired_by'").all(content_id) as { to_id: string }[]).map((r) => r.to_id));
+    return { references: rows.map((r) => ({ ...parse(r), linked: linked.has(r.id as string) })) };
   });
 
   app.post('/references', async (req, reply) => {

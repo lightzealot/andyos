@@ -73,6 +73,8 @@ export interface Reference {
   notes: string;
   tags: string[];
   derived_count: number;
+  /** Solo con ?content_id=…: ya la enlazaste a ese contenido con «Crear contenido inspirado». */
+  linked?: boolean;
 }
 
 export interface N8nWorkflow {
