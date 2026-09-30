@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError, FORMATS, Idea, PLATFORMS } from '@/lib/api';
-import { Nav } from './Nav';
 
 type Tab = Idea['status'];
 const TABS: [Tab, string][] = [['nueva', 'Nuevas'], ['descartada', 'Descartadas'], ['promovida', 'En pipeline']];
@@ -177,9 +176,9 @@ export function Inbox() {
   const count = (t: Tab) => (ideas ?? []).filter((i) => i.status === t).length;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <header className="flex items-center gap-3">
-        <Nav current="/inbox/" /><h1 className="sr-only">Inbox de ideas</h1>
+        <h1 className="text-xl font-bold">Inbox de ideas</h1>
         {ai && (
           <label className="ml-auto flex items-center gap-2 text-xs text-zinc-400">
             <input type="checkbox" checked={ai.auto_tag} onChange={toggleAuto} aria-label="Etiquetado automático con IA" />

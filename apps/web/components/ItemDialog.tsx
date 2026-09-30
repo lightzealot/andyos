@@ -56,8 +56,8 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
 
   const input = 'w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm';
   return (
-    <div className="fixed inset-0 z-20 grid place-items-center bg-black/60 p-4" onClick={onClose}>
-      <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-y-auto rounded-xl border border-zinc-700 bg-zinc-900 p-5" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay fixed inset-0 z-20 grid place-items-center p-4" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-y-auto modal-panel rounded-[1.6rem] p-5" onClick={(e) => e.stopPropagation()}>
         <input className={`${input} text-base font-semibold`} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
         <div className="grid grid-cols-3 gap-2">
           <select className={input} value={f.status} onChange={(e) => setF({ ...f, status: e.target.value as Item['status'] })}>

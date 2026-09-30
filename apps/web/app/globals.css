@@ -15,3 +15,34 @@
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
+
+/*
+ * Skin de cristal (ver docs/05-diseno-visual.md). Dentro de `.skin` los grises y el naranja de Tailwind se
+ * re-mapean a superficies translúcidas y al naranja de marca; así el contenido escrito con `bg-zinc-900`,
+ * `border-zinc-800`, `bg-orange-500`, `rounded-lg`… hereda el diseño sin tocarlo.
+ */
+.skin {
+  color-scheme: dark;
+  --color-zinc-950: rgb(0 0 0 / 0.34);
+  --color-zinc-900: rgb(0 0 0 / 0.26);
+  --color-zinc-800: rgb(255 255 255 / 0.1);
+  --color-zinc-700: rgb(255 255 255 / 0.17);
+  --color-zinc-600: rgb(255 255 255 / 0.28);
+  --color-orange-400: #f58a52;
+  --color-orange-500: #ee6c2b;
+  --color-orange-600: #d95a1b;
+  --radius-md: 0.8rem;
+  --radius-lg: 1.1rem;
+  --radius-xl: 1.4rem;
+  accent-color: #ee6c2b;
+}
+.skin ::placeholder { color: rgb(255 255 255 / 0.4); }
+/* Ventanas modales: cristal casi opaco para que se lea el texto */
+.modal-overlay { background: rgb(10 8 7 / 0.55); backdrop-filter: blur(6px); }
+.modal-panel {
+  background: linear-gradient(160deg, rgba(48, 40, 35, 0.97), rgba(24, 20, 18, 0.97));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+.skin :focus-visible { outline: 2px solid #ee6c2b; outline-offset: 2px; }
+.skin input:focus, .skin textarea:focus, .skin select:focus { outline: 2px solid #ee6c2b; outline-offset: 0; }

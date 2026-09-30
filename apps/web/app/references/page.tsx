@@ -1,5 +1,10 @@
+import { AppShell } from '@/components/AppShell';
 import { References } from '@/components/References';
 
 export default function ReferencesPage() {
-  return <References />;
+  return (
+    <AppShell current="/references/">
+      <References />
+    </AppShell>
+  );
 }

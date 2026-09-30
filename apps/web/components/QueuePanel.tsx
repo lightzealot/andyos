@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError, Job, QueueInfo } from '@/lib/api';
-import { Nav } from './Nav';
 
 const TASK_LABEL: Record<string, string> = {
   tag_idea: 'Etiquetar idea', hooks: 'Hooks', script: 'Guion', caption: 'Caption', humanize: 'Humanizar',
@@ -131,9 +130,9 @@ export function QueuePanel() {
   const snap = st?.usage_snapshot;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <header className="flex items-center gap-3">
-        <Nav current="/queue/" /><h1 className="sr-only">Cola de IA</h1>
+        <h1 className="text-xl font-bold">Cola de IA</h1>
         <button onClick={() => void load()} className="ml-auto text-sm text-zinc-400 hover:text-zinc-200">Actualizar</button>
       </header>
       {failed && <p className="rounded-md bg-red-950 px-3 py-2 text-sm text-red-300">No se pudo leer la cola. ¿Está la API disponible y tiene <code>WORKER_TOKEN</code>?</p>}

@@ -4,7 +4,6 @@ import { DndContext, DragEndEvent, PointerSensor, useDraggable, useDroppable, us
 import { api, ApiError, FORMATS, Item, PLATFORMS } from '@/lib/api';
 import { addDays, dayKey, monthGrid, moveToDay, weekDays } from '@/lib/dates';
 import { ItemDialog } from './ItemDialog';
-import { Nav } from './Nav';
 
 type View = 'month' | 'week';
 const NO_DATE = 'day:none';
@@ -116,9 +115,8 @@ export function Calendar() {
 
   const sel = 'rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-sm';
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-[calc(100vh-8.5rem)] min-h-[30rem] flex-col">
       <header className="flex flex-wrap items-center gap-3 border-b border-zinc-800 p-3">
-        <Nav current="/calendar/" />
         <div className="flex items-center gap-1">
           <button onClick={() => step(-1)} aria-label="Anterior" className={sel}>‹</button>
           <button onClick={() => setAnchor(new Date())} className={sel}>Hoy</button>

@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError, N8nExecution, N8nWorkflow } from '@/lib/api';
-import { Nav } from './Nav';
 
 const STATUS_STYLE: Record<string, string> = {
   success: 'bg-emerald-900 text-emerald-300', error: 'bg-red-900 text-red-300', crashed: 'bg-red-900 text-red-300',
@@ -57,9 +56,9 @@ export function N8nPanel() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <header className="flex items-center gap-3">
-        <Nav current="/n8n/" /><h1 className="sr-only">Panel n8n</h1>
+        <h1 className="text-xl font-bold">Panel n8n</h1>
         <button onClick={() => void load()} className="ml-auto text-sm text-zinc-400 hover:text-zinc-200">Actualizar</button>
       </header>
       {state === 'loading' && <p className="text-zinc-400">Cargando…</p>}

@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, ApiError, Item, Job, QueueInfo, SCRIPT_PARTS, STATUS_LABEL } from '@/lib/api';
-import { Nav } from './Nav';
 import {
   box, btnGhost, btnPrimary, DraftFrame, FieldEditor, inputCls, Marked, Pending,
 } from './StudioParts';
@@ -158,9 +157,9 @@ export function Studio() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
       <header className="flex flex-wrap items-center gap-3">
-        <Nav current="/studio/" /><h1 className="sr-only">Estudio de guiones</h1>
+        <h1 className="text-xl font-bold">Estudio de guiones</h1>
         {items && items.length > 0 && (
           <select className={`${inputCls} w-72`} aria-label="Contenido" value={selectedId ?? ''} onChange={(e) => { setSelectedId(e.target.value); setNotice(''); }}>
             {items.map((i) => <option key={i.id} value={i.id}>{i.title} · {STATUS_LABEL[i.status]}</option>)}
