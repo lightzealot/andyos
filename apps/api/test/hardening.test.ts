@@ -75,3 +75,23 @@ describe('n8n: no sigue redirecciones (los secretos van en cabeceras propias)', 
     expect(targetHits).toHaveLength(0);
   });
 });
+
+describe('CORS: todos los métodos que usa la web están permitidos (un navegador bloquea el resto)', () => {
+  // Las pruebas con inject() no pasan por CORS; este es el único sitio donde se comprueba.
+  const routes: [string, string][] = [
+    ['GET', '/items'], ['POST', '/items'], ['PATCH', '/items/x'], ['DELETE', '/items/x'],
+    ['PUT', '/voice'], ['POST', '/voice/examples'], ['DELETE', '/voice/examples/x'],
+  ];
+  it.each(routes)('%s %s', async (method, url) => {
+    const { app } = await setup();
+    const r = await app.inject({ method: 'OPTIONS', url, headers: { origin: 'http://localhost:3000', 'access-control-request-method': method } });
+    expect(r.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+    expect(String(r.headers['access-control-allow-methods']).split(',').map((m) => m.trim())).toContain(method);
+    expect(r.headers['access-control-allow-credentials']).toBe('true');
+  });
+  it('un origen ajeno no recibe permiso', async () => {
+    const { app } = await setup();
+    const r = await app.inject({ method: 'OPTIONS', url: '/voice', headers: { origin: 'https://evil.example', 'access-control-request-method': 'PUT' } });
+    expect(r.headers['access-control-allow-origin']).not.toBe('https://evil.example');
+  });
+});

@@ -84,6 +84,7 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
             onClick={async () => { if (confirm('¿Archivar esta tarjeta?')) { await api(`/items/${item.id}`, { method: 'DELETE' }); onDeleted(); } }}
             className="ml-auto text-sm text-red-400"
           >Archivar</button>
+          <a href={`/studio/?id=${item.id}`} className="text-sm text-orange-400 hover:underline">✨ Abrir en el Estudio</a>
           <button onClick={onClose} className="text-sm text-zinc-400">Cerrar</button>
         </div>
       </div>
