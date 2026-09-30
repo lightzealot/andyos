@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { fromInputValue, toInputValue } from '@/lib/dates';
+import { PublishPanel } from './PublishPanel';
 import { api, ApiError, FORMATS, Item, PLATFORMS, Reference, STATUSES, STATUS_LABEL } from '@/lib/api';
 import { CAROUSEL_STATES, FOLDER_RE, startPrompt, suggestFolder } from '@/lib/carousel';
 
@@ -109,6 +110,11 @@ export function ItemDialog({ item, onClose, onSaved, onDeleted }: Props) {
             {promptText && <textarea readOnly rows={6} className={`${input} text-xs text-zinc-400`} value={promptText} onFocus={(e) => e.currentTarget.select()} />}
             <p className="text-xs text-zinc-500">El estado lo actualizas tú a mano: AndyOS no ve tu disco. El de aquí y el de la aprobación del Pipeline son independientes.</p>
           </section>
+        )}
+        {(f.platform === '' || f.platform === 'instagram') && (
+          ['carousel', 'post', ''].includes(f.format)
+            ? <PublishPanel item={item} onItemChanged={() => { void api<Item>(`/items/${item.id}`).then(onSaved).catch(() => undefined); }} />
+            : <p className="text-xs text-zinc-500">Publicar {f.format === 'reel' || f.format === 'short' || f.format === 'video' ? 'Reels y videos' : 'stories'} desde aquí llegará en una fase siguiente.</p>
         )}
         <label className="block text-xs text-zinc-400">Fecha objetivo de publicación
           <input type="datetime-local" className={input} value={f.scheduled} onChange={(e) => setF({ ...f, scheduled: e.target.value })} />

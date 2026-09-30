@@ -44,6 +44,18 @@ Nunca se suben al repo (`.env` está en `.gitignore`). Solo `.env.example` (sin 
 | `DIGEST_TZ` | Tu zona horaria IANA, p. ej. `America/Mexico_City`. **Sin ella el resumen no existe** (no adivino tu zona). Un valor inválido impide arrancar la API |
 | `DIGEST_HOUR` | Hora local (0–23) a partir de la cual se envía; defecto `9` |
 
+**Publicar en Instagram vía Windsor (opcional, módulo apagado si falta `PUBLIC_API_URL`):**
+
+| Variable | Valor |
+|---|---|
+| `PUBLIC_API_URL` | `https://api.andresgomez.store` (https obligatorio; `http://localhost…` solo en local). Instagram lee las imágenes desde esta URL, así que tiene que ser pública. **Su presencia activa el módulo** (subida de imágenes y modo de prueba) |
+| `WINDSOR_API_KEY` | Tu clave de Windsor: **onboard.windsor.ai → «Hello [tu correo]» (arriba a la derecha) → Settings → pestaña Account → API Access → icono del ojo/copiar**. Es una clave de cuenta completa (puede leer tus datos de Windsor): guárdala solo aquí, nunca en el chat, y róntala en Windsor si se filtra |
+| `WINDSOR_IG_ACCOUNT_ID` | Id de tu cuenta de Instagram en Windsor (la de `andyontrade` es `17841400336240228`; se ve con `get_connectors`) |
+| `IG_ACCOUNT_NAME` | Nombre que se muestra en la confirmación, p. ej. `andyontrade` |
+| `PUBLISHING_ENABLED` | **No la definas al principio.** Sin ella todo funciona en **MODO DE PRUEBA** (se ve la vista previa y lo que se enviaría, pero no se envía nada). Solo `true` activa la publicación real; con `true` la API **se niega a arrancar** si falta `WINDSOR_API_KEY` o `WINDSOR_IG_ACCOUNT_ID` |
+| `WINDSOR_MCP_URL` | Opcional. Por defecto `https://mcp.windsor.ai/` |
+| `MEDIA_DIR` | Opcional. Por defecto `<carpeta de la base>/media` (en Easypanel `/data/media`, dentro del volumen persistente) |
+
 Además en Easypanel: **volumen persistente montado en `/data`**, dominio `api.andresgomez.store` con HTTPS. **Puerto del dominio: `80`**: Easypanel inyecta `PORT=80` en el contenedor y la app escucha en ese puerto (verifícalo en el log: `andyos-api escuchando en :80`). Si el puerto del dominio no coincide con el del log, da 502.
 
 ## 2. Web — Netlify (*Site configuration → Environment variables*)

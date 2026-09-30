@@ -99,6 +99,47 @@ CREATE TABLE IF NOT EXISTS app_meta (
   value TEXT NOT NULL
 );
 
+/* Publicación en Instagram (vía Windsor): imágenes alojadas en la API, registro de publicaciones y confirmaciones de un solo uso */
+CREATE TABLE IF NOT EXISTS media_assets (
+  id TEXT PRIMARY KEY,
+  item_id TEXT NOT NULL REFERENCES work_items(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  filename TEXT NOT NULL,
+  size INTEGER NOT NULL,
+  width INTEGER NOT NULL,
+  height INTEGER NOT NULL,
+  position INTEGER NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_media_item ON media_assets (item_id, position);
+
+CREATE TABLE IF NOT EXISTS publications (
+  id TEXT PRIMARY KEY,
+  item_id TEXT NOT NULL REFERENCES work_items(id),
+  platform TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('image','carousel')),
+  status TEXT NOT NULL CHECK (status IN ('dry_run','publishing','published','failed','unknown','resolved_published','resolved_not_published')),
+  caption TEXT NOT NULL,
+  asset_ids TEXT NOT NULL,
+  snapshot_hash TEXT NOT NULL,
+  dry_run INTEGER NOT NULL DEFAULT 0,
+  response TEXT,
+  error TEXT,
+  external_id TEXT,
+  permalink TEXT,
+  created_at TEXT NOT NULL,
+  finished_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_publications_item ON publications (item_id, created_at);
+
+CREATE TABLE IF NOT EXISTS publish_confirms (
+  token_hash TEXT PRIMARY KEY,
+  item_id TEXT NOT NULL,
+  snapshot_hash TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS voice_profile (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   guide TEXT NOT NULL,

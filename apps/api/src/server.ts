@@ -1,8 +1,9 @@
 import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { buildApp } from './app.js';
 import { openDb } from './db.js';
 import { startDigest, validTz } from './digest.js';
+import { purgeMedia } from './media.js';
 import { makeNotifier } from './notify.js';
 
 function required(name: string): string {
@@ -62,6 +63,25 @@ if (alertVars.every(Boolean)) {
   alert = { url, secret: process.env.ALERT_WEBHOOK_SECRET! };
 }
 
+// Publicar en Instagram vía Windsor (opcional). Sin PUBLIC_API_URL el módulo no existe.
+let publish;
+if (process.env.PUBLIC_API_URL) {
+  const publicUrl = process.env.PUBLIC_API_URL.replace(/\/+$/, '');
+  if (!/^https:\/\//.test(publicUrl) && !/^http:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(publicUrl)) throw new Error('PUBLIC_API_URL debe ser https:// (http solo para localhost): Instagram tiene que poder leer las imágenes');
+  const enabled = process.env.PUBLISHING_ENABLED === 'true';
+  const key = process.env.WINDSOR_API_KEY || undefined;
+  const accountId = process.env.WINDSOR_IG_ACCOUNT_ID || '';
+  // Fallar cerrado: activar la publicación real sin clave o sin cuenta es un error de configuración, no un modo de prueba
+  if (enabled && (!key || !accountId)) throw new Error('PUBLISHING_ENABLED=true exige WINDSOR_API_KEY y WINDSOR_IG_ACCOUNT_ID');
+  const windsorUrl = process.env.WINDSOR_MCP_URL || 'https://mcp.windsor.ai/';
+  if (!/^https:\/\//.test(windsorUrl) && !/^http:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(windsorUrl)) throw new Error('WINDSOR_MCP_URL debe ser https:// (http solo para localhost)');
+  publish = {
+    cfg: { enabled, windsor: key ? { url: windsorUrl, key } : undefined, accountId, accountName: process.env.IG_ACCOUNT_NAME || 'tu cuenta de Instagram' },
+    media: { dir: process.env.MEDIA_DIR || join(dirname(dbPath), 'media'), publicUrl },
+  };
+  if (!enabled) console.warn('AVISO: publicación en MODO DE PRUEBA (PUBLISHING_ENABLED no es «true»): no se enviará nada a Instagram.');
+}
+
 let digest;
 if (process.env.DIGEST_TZ) {
   const tz = process.env.DIGEST_TZ;
@@ -86,7 +106,13 @@ const app = await buildApp(db, {
   workerToken,
   alert,
   digest,
+  publish,
 });
+if (publish) {
+  const purge = () => { try { const n = purgeMedia(db, publish.media.dir, Date.now()); if (n) console.log(`[media] ${n} imagen(es) de publicaciones antiguas borradas`); } catch (e) { console.error('[media]', (e as Error).message); } };
+  purge();
+  setInterval(purge, 24 * 3600_000).unref();
+}
 if (digest && alert) startDigest(db, digest, makeNotifier(alert));
 
 const port = Number(process.env.PORT ?? 8787);
