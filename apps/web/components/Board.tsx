@@ -5,7 +5,6 @@ import {
 } from '@dnd-kit/core';
 import { api, ApiError, FORMATS, Item, PLATFORMS, Status, STATUSES, STATUS_LABEL } from '@/lib/api';
 import { ItemDialog } from './ItemDialog';
-import { Nav } from './Nav';
 
 function Card({ item, onOpen }: { item: Item; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: item.id });
@@ -93,10 +92,9 @@ export function Board() {
   );
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-[calc(100vh-8.5rem)] min-h-[30rem] flex-col">
       <header className="flex flex-wrap items-center gap-3 border-b border-zinc-800 p-3">
-        <Nav current="/" />
-        <h1 className="sr-only">Content Pipeline</h1>
+        <h1 className="text-xl font-bold">Pipeline de contenido</h1>
         <form onSubmit={create} className="flex gap-2">
           <input
             value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nueva idea…"

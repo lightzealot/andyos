@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, ApiError, Idea, Item, QueueInfo, STATUS_LABEL, Status } from '@/lib/api';
 import { dayKey, daysBetween, greeting, perDay, summarize, whenLabel } from '@/lib/dashboard';
-import { ActivityChart, Gauge, Icon, MiniBars, ORANGE, Pulse, SideNav, StatCard } from './DashboardParts';
+import { AppShell, Icon, ORANGE } from './AppShell';
+import { ActivityChart, Gauge, MiniBars, Pulse, StatCard } from './DashboardParts';
 
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const fmtShort = (iso: string) => new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'short' });
@@ -53,12 +54,53 @@ export function Dashboard() {
   const q = s.queue;
 
   return (
-    <div className="dash-bg min-h-screen p-3 text-white sm:p-5">
-      <div className="mx-auto grid max-w-[1400px] gap-4 lg:grid-cols-[76px_minmax(0,1fr)_330px]">
-        <SideNav current="/dashboard/" />
+    <AppShell current="/dashboard/" aside={(
+        <aside className="glass space-y-3 rounded-[2rem] p-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-full text-sm font-black" style={{ background: ORANGE }} aria-hidden>AG</span>
+            <div className="min-w-0 flex-1"><p className="font-semibold leading-tight">Andrés Gómez</p><p className="text-xs text-white/50">@andyontrade</p></div>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-white/10 rounded-2xl bg-black/25 py-2 text-center">
+            {[[s.totals.cards, 'Tarjetas'], [s.totals.ideas, 'Ideas'], [s.totals.published, 'Publicadas']].map(([v, l]) => <div key={l}><p className="text-base font-bold">{v}</p><p className="text-[10px] text-white/45">{l}</p></div>)}
+          </div>
 
-        {/* ---------- centro ---------- */}
-        <main className="glass min-w-0 space-y-4 rounded-[2rem] p-4 sm:p-6">
+          <div className="rounded-2xl bg-black/25 p-3">
+            <div className="mb-2 flex items-center justify-between text-sm font-semibold">
+              <span className="capitalize">{MONTHS[month.m]} {month.y}</span>
+              <span className="flex gap-1">
+                <button aria-label="Mes anterior" onClick={() => setMonth((m) => (m.m === 0 ? { y: m.y - 1, m: 11 } : { ...m, m: m.m - 1 }))} className="h-6 w-6 rounded-full bg-white/10 hover:bg-white/20">‹</button>
+                <button aria-label="Mes siguiente" onClick={() => setMonth((m) => (m.m === 11 ? { y: m.y + 1, m: 0 } : { ...m, m: m.m + 1 }))} className="h-6 w-6 rounded-full bg-white/10 hover:bg-white/20">›</button>
+              </span>
+            </div>
+            <div className="grid grid-cols-7 gap-y-1 text-center text-[11px]">
+              {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => <span key={d} className="text-white/35">{d}</span>)}
+              {cells.map((d, i) => {
+                if (d === null) return <span key={i} />;
+                const k = dayKey(new Date(month.y, month.m, d));
+                const kind = s.calendar.get(k);
+                const bg = kind === 'today' ? ORANGE : kind === 'overdue' ? '#d6336c' : kind === 'scheduled' ? '#2f9e44' : undefined;
+                return <span key={i} data-day={k} data-kind={kind ?? ''} className={`mx-auto grid h-7 w-7 place-items-center rounded-full ${bg ? 'font-bold text-white' : 'text-white/70'}`} style={bg ? { background: bg } : undefined}>{d}</span>;
+              })}
+            </div>
+            <p className="mt-2 flex flex-wrap gap-x-3 text-[10px] text-white/45"><span><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: ORANGE }} />hoy</span><span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#2f9e44]" />con fecha</span><span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#d6336c]" />vencida</span></p>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between"><h2 className="border-l-[3px] pl-2 text-sm font-bold" style={{ borderColor: ORANGE }}>Programado</h2><Link href="/calendar/" className="text-xs text-white/55 hover:text-white">ver todo</Link></div>
+            <ul className="space-y-2">
+              {s.upcoming.slice(0, 4).map((u) => (
+                <li key={u.id} data-up className="rounded-2xl bg-black/25 p-3">
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/70">{u.format ?? 'contenido'}</span>
+                  <p className="mt-1 line-clamp-2 text-sm font-semibold leading-tight">{u.title}</p>
+                  <p className="text-[11px] text-white/45">{fmtShort(u.scheduled_at)} · {whenLabel(daysBetween(today, dayKey(u.scheduled_at)))}</p>
+                </li>
+              ))}
+              {items !== null && s.upcoming.length === 0 && <li className="text-sm text-white/45">Sin fechas próximas.</li>}
+            </ul>
+          </div>
+        </aside>
+    )}>
+      <div className="space-y-4">
           <header className="flex flex-wrap items-center gap-3">
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-bold">{greeting(hour)}, Andrés <span aria-hidden>👋</span></h1>
@@ -131,54 +173,7 @@ export function Dashboard() {
               {items !== null && s.pipeline.length === 0 && <p className="text-sm text-white/55 sm:col-span-3">No hay tarjetas en marcha. Promueve una idea del Inbox.</p>}
             </div>
           </section>
-        </main>
-
-        {/* ---------- derecha ---------- */}
-        <aside className="glass space-y-3 rounded-[2rem] p-4">
-          <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-full text-sm font-black" style={{ background: ORANGE }} aria-hidden>AG</span>
-            <div className="min-w-0 flex-1"><p className="font-semibold leading-tight">Andrés Gómez</p><p className="text-xs text-white/50">@andyontrade</p></div>
-          </div>
-          <div className="grid grid-cols-3 divide-x divide-white/10 rounded-2xl bg-black/25 py-2 text-center">
-            {[[s.totals.cards, 'Tarjetas'], [s.totals.ideas, 'Ideas'], [s.totals.published, 'Publicadas']].map(([v, l]) => <div key={l}><p className="text-base font-bold">{v}</p><p className="text-[10px] text-white/45">{l}</p></div>)}
-          </div>
-
-          <div className="rounded-2xl bg-black/25 p-3">
-            <div className="mb-2 flex items-center justify-between text-sm font-semibold">
-              <span className="capitalize">{MONTHS[month.m]} {month.y}</span>
-              <span className="flex gap-1">
-                <button aria-label="Mes anterior" onClick={() => setMonth((m) => (m.m === 0 ? { y: m.y - 1, m: 11 } : { ...m, m: m.m - 1 }))} className="h-6 w-6 rounded-full bg-white/10 hover:bg-white/20">‹</button>
-                <button aria-label="Mes siguiente" onClick={() => setMonth((m) => (m.m === 11 ? { y: m.y + 1, m: 0 } : { ...m, m: m.m + 1 }))} className="h-6 w-6 rounded-full bg-white/10 hover:bg-white/20">›</button>
-              </span>
-            </div>
-            <div className="grid grid-cols-7 gap-y-1 text-center text-[11px]">
-              {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => <span key={d} className="text-white/35">{d}</span>)}
-              {cells.map((d, i) => {
-                if (d === null) return <span key={i} />;
-                const k = dayKey(new Date(month.y, month.m, d));
-                const kind = s.calendar.get(k);
-                const bg = kind === 'today' ? ORANGE : kind === 'overdue' ? '#d6336c' : kind === 'scheduled' ? '#2f9e44' : undefined;
-                return <span key={i} data-day={k} data-kind={kind ?? ''} className={`mx-auto grid h-7 w-7 place-items-center rounded-full ${bg ? 'font-bold text-white' : 'text-white/70'}`} style={bg ? { background: bg } : undefined}>{d}</span>;
-              })}
-            </div>
-            <p className="mt-2 flex flex-wrap gap-x-3 text-[10px] text-white/45"><span><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: ORANGE }} />hoy</span><span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#2f9e44]" />con fecha</span><span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#d6336c]" />vencida</span></p>
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between"><h2 className="border-l-[3px] pl-2 text-sm font-bold" style={{ borderColor: ORANGE }}>Programado</h2><Link href="/calendar/" className="text-xs text-white/55 hover:text-white">ver todo</Link></div>
-            <ul className="space-y-2">
-              {s.upcoming.slice(0, 4).map((u) => (
-                <li key={u.id} data-up className="rounded-2xl bg-black/25 p-3">
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/70">{u.format ?? 'contenido'}</span>
-                  <p className="mt-1 line-clamp-2 text-sm font-semibold leading-tight">{u.title}</p>
-                  <p className="text-[11px] text-white/45">{fmtShort(u.scheduled_at)} · {whenLabel(daysBetween(today, dayKey(u.scheduled_at)))}</p>
-                </li>
-              ))}
-              {items !== null && s.upcoming.length === 0 && <li className="text-sm text-white/45">Sin fechas próximas.</li>}
-            </ul>
-          </div>
-        </aside>
       </div>
-    </div>
+    </AppShell>
   );
 }

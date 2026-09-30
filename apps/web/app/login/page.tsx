@@ -18,9 +18,9 @@ export default function Login() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center p-4">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-        <h1 className="text-xl font-semibold">AndyOS</h1>
+    <main className="dash-bg skin grid min-h-screen place-items-center p-4 text-zinc-100">
+      <form onSubmit={submit} className="glass w-full max-w-sm space-y-4 rounded-[2rem] p-7">
+        <h1 className="text-2xl font-bold"><span style={{ color: '#ee6c2b' }} aria-hidden>▸</span> AndyOS</h1>
         <input
           type="password" autoFocus value={password} onChange={(e) => setPassword(e.target.value)}
           placeholder="Contraseña" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2"

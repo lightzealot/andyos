@@ -4,7 +4,8 @@ export const metadata: Metadata = { title: 'Política de privacidad · AndyOS' }
 
 export default function Privacy() {
   return (
-    <main className="mx-auto max-w-2xl space-y-5 p-6 leading-relaxed">
+    <div className="dash-bg skin min-h-screen p-3 text-zinc-100 sm:p-5">
+    <main className="glass mx-auto max-w-2xl space-y-5 rounded-[2rem] p-6 leading-relaxed sm:p-8">
       <h1 className="text-2xl font-semibold">Política de privacidad</h1>
       <p className="text-sm text-zinc-400">Última actualización: 29 de septiembre de 2026</p>
 
@@ -54,5 +55,6 @@ export default function Privacy() {
         <p>Andrés Gómez · agomez87@gmail.com</p>
       </section>
     </main>
+    </div>
   );
 }

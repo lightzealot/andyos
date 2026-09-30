@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError, FORMATS, PLATFORMS, Reference } from '@/lib/api';
-import { Nav } from './Nav';
 
 const input = 'w-full rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-sm';
 
@@ -125,8 +124,8 @@ export function References() {
     (!term || [r.title, r.creator, r.why_it_works, r.hook_pattern, r.tags.join(' ')].join(' ').toLowerCase().includes(term)));
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 p-4">
-      <header className="flex items-center gap-3"><Nav current="/references/" /><h1 className="sr-only">Referencias</h1></header>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+      <header className="flex items-center gap-3"><h1 className="text-xl font-bold">Referencias</h1></header>
       <div className="flex gap-2">
         <input className={input} placeholder="Buscar en título, creador, por qué funciona, etiquetas…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" />
         <select className={`${input} w-44`} value={platform} onChange={(e) => setPlatform(e.target.value)} aria-label="Filtrar plataforma">
