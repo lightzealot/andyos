@@ -17,6 +17,7 @@ export function PublishPanel({ item, onItemChanged }: { item: Item; onItemChange
   const [preview, setPreview] = useState<PublishPreview | null>(null);
   const [result, setResult] = useState<{ tone: 'ok' | 'warn' | 'bad'; text: string; link?: string | null } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const [check, setCheck] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -89,6 +90,17 @@ export function PublishPanel({ item, onItemChanged }: { item: Item; onItemChange
     setPreview(null); await load(); onItemChanged(); setBusy(false);
   }
 
+  /** Prueba de SOLO LECTURA desde el servidor: usa la clave que ya tiene la API y no publica nada. */
+  async function testConnection() {
+    setCheck('Probando…');
+    try {
+      const res = await fetch(`${API}/publish/check`, { credentials: 'include' });
+      const d = await res.json().catch(() => ({})) as { ok?: boolean; can_publish?: boolean; error?: string };
+      if (res.ok && d.ok) setCheck(d.can_publish ? '✓ Conexión con Windsor correcta; puede publicar.' : '✗ Conecta, pero Windsor no ofrece la acción de publicar.');
+      else setCheck(`✗ ${d.error === 'windsor_not_configured' ? 'Falta WINDSOR_API_KEY en la API.' : d.error ?? 'No se pudo conectar con Windsor.'}`);
+    } catch { setCheck('✗ No se pudo conectar con la API.'); }
+  }
+
   async function resolve(p: Publication, outcome: 'published' | 'not_published') {
     let url: string | undefined;
     if (outcome === 'published') {
@@ -110,6 +122,8 @@ export function PublishPanel({ item, onItemChanged }: { item: Item; onItemChange
         <span data-mode={status.mode} className={`${badge} ${dry ? 'bg-amber-900 text-amber-300' : 'bg-emerald-900 text-emerald-300'}`}>
           {dry ? 'MODO DE PRUEBA: no se envía nada' : 'Publicación real'}
         </span>
+        {status.windsor_configured && <button data-check onClick={() => void testConnection()} className="text-xs text-zinc-400 underline hover:text-zinc-200">Probar conexión</button>}
+        {check && <span data-check-result className="text-xs text-zinc-300">{check}</span>}
       </div>
 
       <div

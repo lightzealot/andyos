@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { Db } from './db.js';
 import { pendingMarkers } from './lint.js';
 import { listAssets, MAX_IMAGES, publicUrlOf, ratioOk, type Asset, type MediaCfg } from './media.js';
-import { extractIds, windsorExecute, type WindsorCfg } from './windsor.js';
+import { extractIds, windsorExecute, windsorListTools, type WindsorCfg } from './windsor.js';
 
 export interface PublishCfg {
   /** PUBLISHING_ENABLED: sin esto, nada se envía nunca a Instagram (solo modo de prueba). */
@@ -77,6 +77,15 @@ export function registerPublish(app: FastifyInstance, db: Db, pcfg: PublishCfg, 
     mode: real() ? 'real' : 'dry_run', enabled: pcfg.enabled, windsor_configured: Boolean(pcfg.windsor?.key),
     account: pcfg.accountName, max_images: MAX_IMAGES,
   }));
+
+  // Comprobación de SOLO LECTURA con la clave que ya tiene el servidor: abre la conexión y lista las herramientas.
+  // No publica nada y no devuelve la clave. Sirve para verificar la conexión sin que la clave salga del servidor.
+  app.get('/publish/check', { config: { rateLimit: { max: 6, timeWindow: '1 minute' } } }, async (_req, reply) => {
+    if (!pcfg.windsor?.key) return reply.code(409).send({ ok: false, error: 'windsor_not_configured' });
+    const r = await windsorListTools(pcfg.windsor);
+    if (!r.ok) return reply.code(502).send({ ok: false, error: r.error });
+    return { ok: true, tools: r.tools, can_publish: r.tools.includes('execute_action'), mode: real() ? 'real' : 'dry_run' };
+  });
 
   app.post('/items/:id/publish/preview', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req, reply) => {
     const { id } = req.params as { id: string };
