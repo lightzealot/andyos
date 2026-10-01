@@ -411,3 +411,36 @@ describe('comprobación de solo lectura', () => {
     expect(r.ok).toBe(false); expect(JSON.stringify(r)).not.toContain(KEY);
   });
 });
+
+describe('GET /publish/check (solo lectura, desde el servidor)', () => {
+  const listTools = (tools: string[]) => (async (_u: string, init: RequestInit) => {
+    const b = JSON.parse(String(init.body));
+    if (b.method === 'initialize') return new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }), { headers: { 'content-type': 'application/json', 'mcp-session-id': 's' } });
+    if (b.method === 'tools/list') return new Response(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { tools: tools.map((name) => ({ name })) } }), { headers: { 'content-type': 'application/json' } });
+    return new Response('', { status: 202 });
+  }) as unknown as typeof fetch;
+  const withFetch = async (f: typeof fetch) => {
+    const app = await buildApp(openDb(':memory:'), { password: 'pw', sessionSecret: 'x'.repeat(40), webOrigin: 'http://localhost:3000', secureCookie: false, inboxSecret: 'i'.repeat(40),
+      publish: { cfg: { enabled: false, windsor: { url: 'https://mcp.test/', key: KEY, fetchImpl: f }, accountId: '1', accountName: 'x' }, media: { dir: mkdtempSync(join(tmpdir(), 'fos-')), publicUrl: PUBLIC } } });
+    const cookie = ((await app.inject({ method: 'POST', url: '/auth/login', payload: { password: 'pw' } })).headers['set-cookie'] as string).split(';')[0];
+    return { app, cookie };
+  };
+  it('exige sesión, lista las herramientas y dice si se puede publicar, sin mostrar la clave', async () => {
+    const { app, cookie } = await withFetch(listTools(['get_data', 'execute_action']));
+    expect((await app.inject({ method: 'GET', url: '/publish/check' })).statusCode).toBe(401);
+    const r = await app.inject({ method: 'GET', url: '/publish/check', headers: { cookie } });
+    expect(r.json()).toEqual({ ok: true, tools: ['get_data', 'execute_action'], can_publish: true, mode: 'dry_run' });
+    expect(r.body).not.toContain(KEY);
+  });
+  it('avisa si falta «execute_action» o si la clave es rechazada', async () => {
+    const a = await withFetch(listTools(['get_data']));
+    expect((await a.app.inject({ method: 'GET', url: '/publish/check', headers: { cookie: a.cookie } })).json().can_publish).toBe(false);
+    const b = await withFetch((async () => new Response('no', { status: 401 })) as unknown as typeof fetch);
+    const r = await b.app.inject({ method: 'GET', url: '/publish/check', headers: { cookie: b.cookie } });
+    expect([r.statusCode, r.json().ok]).toEqual([502, false]); expect(r.body).toMatch(/clave/); expect(r.body).not.toContain(KEY);
+  });
+  it('sin clave configurada: 409', async () => {
+    const r = await ctx.user('GET', '/publish/check');
+    expect([r.statusCode, r.json().error]).toEqual([409, 'windsor_not_configured']);
+  });
+});
