@@ -14,6 +14,8 @@ import { registerAi } from './ai.js';
 import { registerVoice } from './voice-routes.js';
 import { makeNotifier } from './notify.js';
 import { buildDigest, type DigestCfg } from './digest.js';
+import { registerMedia, type MediaCfg } from './media.js';
+import { registerPublish, type PublishCfg } from './publish.js';
 import { APPROVAL_FIELDS, CreateItem, GATED, PatchItem, STATUSES } from './model.js';
 
 export interface Config {
@@ -33,6 +35,8 @@ export interface Config {
   workerToken?: string;
   /** Webhook de n8n para avisos (Telegram). */
   alert?: { url: string; secret: string };
+  /** Publicar en Instagram vía Windsor. Sin esto el módulo no existe (ni subida de imágenes). */
+  publish?: { cfg: PublishCfg; media: MediaCfg };
   /** Resumen diario por Telegram (zona y hora). Sin esto, no existe. */
   digest?: DigestCfg;
   /** Reloj inyectable (tests). */
@@ -86,7 +90,7 @@ export async function buildApp(db: Db, cfg: Config) {
   };
 
   app.addHook('preHandler', async (req, reply) => {
-    if (req.url.startsWith('/auth/login') || req.url === '/health' || req.url.startsWith('/webhooks/') || req.url.startsWith('/worker/')) return;
+    if (req.url.startsWith('/auth/login') || req.url === '/health' || req.url.startsWith('/webhooks/') || req.url.startsWith('/worker/') || req.url.startsWith('/m/')) return;
     if (req.method === 'OPTIONS') return;
     if (!sessionValid(req.cookies[COOKIE], cfg.sessionSecret)) {
       return reply.code(401).send({ error: 'unauthorized' });
@@ -201,6 +205,10 @@ export async function buildApp(db: Db, cfg: Config) {
   registerReferences(app, db);
   registerN8n(app, cfg.n8n ?? null);
   registerBackup(app, db, cfg.backupSecret);
+  if (cfg.publish) {
+    registerMedia(app, db, cfg.publish.media, (c) => sessionValid(c, cfg.sessionSecret));
+    registerPublish(app, db, cfg.publish.cfg, cfg.publish.media, cfg.now ?? Date.now);
+  }
   if (cfg.digest) {
     const { tz } = cfg.digest;
     const notify = makeNotifier(cfg.alert);

@@ -132,6 +132,15 @@ export interface QueueInfo {
   counters: { day: number; week: number; queued: number; running: number };
 }
 
+/** Imagen subida a una tarjeta para publicarla en Instagram. */
+export interface MediaAsset { id: string; url: string; filename: string; width: number; height: number; position: number; size: number; ok: boolean }
+export interface PublishStatus { mode: 'real' | 'dry_run'; enabled: boolean; windsor_configured: boolean; account: string; max_images: number }
+export interface Publication { id: string; kind: 'image' | 'carousel'; status: 'dry_run' | 'publishing' | 'published' | 'failed' | 'unknown' | 'resolved_published' | 'resolved_not_published'; dry_run: number; error: string | null; permalink: string | null; created_at: string; finished_at: string | null }
+export interface PublishPreview {
+  ok: true; confirm_token: string; expires_in_s: number; warnings: string[];
+  preview: { mode: 'real' | 'dry_run'; account: string; kind: 'image' | 'carousel'; caption: string; title: string; images: { id: string; url: string; width: number; height: number }[] };
+}
+
 export interface Voice {
   guide: string;
   facts: string[];
