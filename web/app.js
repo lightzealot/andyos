@@ -116,7 +116,7 @@ function tarjeta(p) {
   }
   const open = () => abrir(p);
   const card = h("div", {
-    class: "card", role: "button", tabindex: "0", draggable: "true", onclick: open,
+    class: "card", role: "button", tabindex: "0", draggable: "true", title: p.titulo, onclick: open,
     onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } },
   }, h("div", { class: "t" }, p.titulo), meta);
   card.addEventListener("dragstart", (e) => {
@@ -195,7 +195,7 @@ function renderTodas() {
   cont.replaceChildren();
   for (const e of ETAPAS) {
     const ps = state.piezas.filter((p) => p.etapa === e && (!state.tag || p.etiquetas.includes(state.tag)) && (!state.tipoFiltro || p.tipo === state.tipoFiltro));
-    const g = h("div", { class: "stage-group" }, h("h2", {}, `${ETAPA_LABEL[e]} (${ps.length})`));
+    const g = h("div", { class: `stage-group ${e}` }, h("h2", {}, `${ETAPA_LABEL[e]} (${ps.length})`));
     zona(g, (id) => mover(id, { etapa: e }));
     const list = h("div", { class: "list" });
     poblar(list, ps);
