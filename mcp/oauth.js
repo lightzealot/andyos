@@ -88,7 +88,8 @@ ${error ? `<p class="e">${esc(error)}</p>` : ""}
         t: "ap", cid: client.client_id, ru: params.redirectUri, cc: params.codeChallenge,
         st: params.state, rs: params.resource?.href, exp: ahora() + DURACION.formulario,
       });
-      res.set({ "Cache-Control": "no-store", "X-Frame-Options": "DENY", "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'" });
+      res.set({ "Cache-Control": "no-store", "X-Frame-Options": "DENY", // Sin form-action: los navegadores lo aplican también a la redirección posterior al envío (hacia claude.ai o claude://) y la bloquearían.
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" });
       res.type("html").send(pagina(blob, client.client_name));
     },
 

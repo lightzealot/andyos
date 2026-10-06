@@ -32,6 +32,8 @@ async function autorizar(clave) {
   const html = await page.text();
   const blob = /name="blob" value="([^"]+)"/.exec(html)?.[1];
   assert.ok(blob, "la página trae el formulario");
+  const csp = page.headers.get("content-security-policy") || "";
+  assert.ok(!/form-action/.test(csp), "form-action bloquearía la redirección a claude.ai tras aprobar");
   return post("/aprobar", form({ blob, clave }), FORM);
 }
 
