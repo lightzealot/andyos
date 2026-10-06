@@ -93,7 +93,8 @@ label input,label textarea{margin-top:5px;color:var(--ink)}
 .hoy .card{border-left:3px solid var(--accent)}
 .empty{color:var(--ink3);font-size:.9rem;padding:2px}
 .stage-group h2{font-size:.95rem}
-.filters{margin:20px 0 0;max-width:260px}
+.filters{margin:20px 0 0;display:flex;gap:10px;flex-wrap:wrap}
+.filters select{width:auto;min-width:200px}
 
 /* ---------- diálogo ---------- */
 dialog{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--panel);color:var(--ink);width:min(560px,calc(100% - 24px));padding:22px}
@@ -138,3 +139,13 @@ legend{font-size:.85rem;color:var(--ink2);padding:0;margin-bottom:6px}
   .row2{grid-template-columns:1fr}
   h1{font-size:1.4rem}
 }
+
+/* ---------- tipo y arrastrar ---------- */
+.tipo{padding:1px 8px;border-radius:var(--r-sm);border:1px solid var(--border);color:var(--ink2);font-size:.74rem}
+.seg button.tipo-btn{border-radius:var(--r-md)}
+.card[draggable="true"]{cursor:grab}
+.card.dragging{opacity:.4}
+.drop-over{outline:2px dashed var(--accent);outline-offset:-2px;background:rgba(207,127,66,.07)}
+.inbox,.stage-group{border-radius:var(--r-lg)}
+.inbox{padding:0 0 8px}
+@media (hover:none){.card[draggable="true"]{cursor:pointer}}

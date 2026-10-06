@@ -6,10 +6,13 @@ const SUPABASE_KEY = "sb_publishable_-hX2WYrbjBC6h3NPwJYdpw_yH3IvLiH"; // clave 
 const ETAPAS = ["idea", "guion", "grabado", "editado", "publicado"];
 const ETAPA_LABEL = { idea: "Idea", guion: "Guion", grabado: "Grabado", editado: "Editado", publicado: "Publicado" };
 
+const TIPOS = ["reel", "carrusel", "foto", "story", "video", "otro"];
+const TIPO_LABEL = { reel: "Reel", carrusel: "Carrusel", foto: "Foto", story: "Story", video: "Video", otro: "Otro" };
+
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = (id) => document.getElementById(id);
 
-const state = { piezas: [], weekStart: mondayOf(new Date()), view: "semana", editing: null, etapa: "idea", tag: "" };
+const state = { piezas: [], weekStart: mondayOf(new Date()), view: "semana", editing: null, etapa: "idea", tipo: null, tag: "", tipoFiltro: "" };
 
 /* ---------- utilidades ---------- */
 function ymd(d) {
@@ -75,6 +78,24 @@ async function borrar(id) {
   render();
   return true;
 }
+async function mover(id, campos) {
+  const p = state.piezas.find((x) => x.id === id);
+  if (!p || Object.entries(campos).every(([k, v]) => p[k] === v)) return;
+  Object.assign(p, campos); // optimista: se ve al instante
+  render();
+  const { error } = await sb.from("piezas").update(campos).eq("id", id);
+  if (error) { fail(error, "No se pudo mover"); cargar(); }
+}
+function zona(el, alSoltar) {
+  el.addEventListener("dragover", (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; el.classList.add("drop-over"); });
+  el.addEventListener("dragleave", (e) => { if (!el.contains(e.relatedTarget)) el.classList.remove("drop-over"); });
+  el.addEventListener("drop", (e) => {
+    e.preventDefault();
+    el.classList.remove("drop-over");
+    const id = e.dataTransfer.getData("text/plain");
+    if (id) alSoltar(id);
+  });
+}
 async function avanzar(p) {
   const i = ETAPAS.indexOf(p.etapa);
   if (i < ETAPAS.length - 1) await guardar(p.id, { etapa: ETAPAS[i + 1] });
@@ -83,6 +104,7 @@ async function avanzar(p) {
 /* ---------- tarjetas ---------- */
 function tarjeta(p) {
   const meta = h("div", { class: "meta" }, h("span", { class: `chip ${p.etapa}` }, ETAPA_LABEL[p.etapa]));
+  if (p.tipo) meta.append(h("span", { class: "tipo" }, TIPO_LABEL[p.tipo]));
   if (p.funciono) meta.append(h("span", { class: "star", title: "Funcionó" }, "★"));
   for (const t of p.etiquetas) meta.append(h("span", { class: "tag" }, `#${t}`));
   if (p.etapa !== "publicado") {
@@ -93,10 +115,17 @@ function tarjeta(p) {
     }, `→ ${sig}`));
   }
   const open = () => abrir(p);
-  return h("div", {
-    class: "card", role: "button", tabindex: "0", onclick: open,
+  const card = h("div", {
+    class: "card", role: "button", tabindex: "0", draggable: "true", onclick: open,
     onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } },
   }, h("div", { class: "t" }, p.titulo), meta);
+  card.addEventListener("dragstart", (e) => {
+    e.dataTransfer.setData("text/plain", p.id);
+    e.dataTransfer.effectAllowed = "move";
+    card.classList.add("dragging");
+  });
+  card.addEventListener("dragend", () => card.classList.remove("dragging"));
+  return card;
 }
 function poblar(cont, piezas, vacio) {
   cont.replaceChildren();
@@ -143,11 +172,13 @@ function renderSemana() {
     dia.append(h("h3", {}, new Intl.DateTimeFormat("es", { weekday: "short", day: "numeric" }).format(d)));
     const list = h("div", { class: "list" });
     for (const p of del) list.append(tarjeta(p));
+    zona(dia, (id) => mover(id, { fecha: key }));
     dia.append(list, h("button", { class: "add", type: "button", "aria-label": `Añadir el ${key}`, onclick: () => abrir(null, key) }, "+"));
     week.append(dia);
   }
 
   const sinFecha = state.piezas.filter((p) => !p.fecha && p.etapa !== "publicado");
+  if (!$("inbox")._zona) { $("inbox")._zona = true; zona($("inbox").parentElement, (id) => mover(id, { fecha: null })); }
   $("inbox-count").textContent = sinFecha.length ? `(${sinFecha.length})` : "";
   poblar($("inbox"), sinFecha, "Sin ideas pendientes. Anota una arriba.");
 }
@@ -157,11 +188,15 @@ function renderTodas() {
   sel.replaceChildren(h("option", { value: "" }, "Todas las etiquetas"), ...tags.map((t) => h("option", { value: t }, `#${t}`)));
   if (!tags.includes(state.tag)) state.tag = "";
   sel.value = state.tag;
+  const st = $("tipofilter");
+  st.replaceChildren(h("option", { value: "" }, "Todos los tipos"), ...TIPOS.map((t) => h("option", { value: t }, TIPO_LABEL[t])));
+  st.value = state.tipoFiltro;
   const cont = $("todas");
   cont.replaceChildren();
   for (const e of ETAPAS) {
-    const ps = state.piezas.filter((p) => p.etapa === e && (!state.tag || p.etiquetas.includes(state.tag)));
+    const ps = state.piezas.filter((p) => p.etapa === e && (!state.tag || p.etiquetas.includes(state.tag)) && (!state.tipoFiltro || p.tipo === state.tipoFiltro));
     const g = h("div", { class: "stage-group" }, h("h2", {}, `${ETAPA_LABEL[e]} (${ps.length})`));
+    zona(g, (id) => mover(id, { etapa: e }));
     const list = h("div", { class: "list" });
     poblar(list, ps);
     g.append(list);
@@ -189,15 +224,27 @@ function pintarEtapas() {
     }, ETAPA_LABEL[e]));
   }
 }
+function pintarTipos() {
+  const cont = $("f-tipo");
+  cont.replaceChildren();
+  for (const t of TIPOS) {
+    cont.append(h("button", {
+      type: "button", class: "tipo-btn" + (t === state.tipo ? " on" : ""),
+      onclick: () => { state.tipo = state.tipo === t ? null : t; pintarTipos(); }, // pulsar de nuevo lo quita
+    }, TIPO_LABEL[t]));
+  }
+}
 function abrir(p, fecha = "") {
   state.editing = p;
   state.etapa = p ? p.etapa : "idea";
+  state.tipo = p ? p.tipo : null;
   $("f-titulo").value = p ? p.titulo : "";
   $("f-notas").value = p ? p.notas : "";
   $("f-fecha").value = p ? p.fecha || "" : fecha;
   $("f-etiquetas").value = p ? p.etiquetas.join(", ") : "";
   $("f-funciono").checked = p ? p.funciono : false;
   $("f-borrar").hidden = !p;
+  pintarTipos();
   pintarEtapas();
   $("dlg").showModal();
   $("f-titulo").focus();
@@ -211,6 +258,7 @@ $("tabs").addEventListener("click", (e) => { if (e.target.dataset.view) setView(
 $("prev").onclick = () => { state.weekStart = addDays(state.weekStart, -7); render(); };
 $("next").onclick = () => { state.weekStart = addDays(state.weekStart, 7); render(); };
 $("today").onclick = () => { state.weekStart = mondayOf(new Date()); render(); };
+$("tipofilter").onchange = (e) => { state.tipoFiltro = e.target.value; renderTodas(); };
 $("tagfilter").onchange = (e) => { state.tag = e.target.value; renderTodas(); };
 $("logout").onclick = () => sb.auth.signOut();
 
@@ -232,6 +280,7 @@ $("dlg-form").addEventListener("submit", async (e) => {
     titulo: $("f-titulo").value.trim(),
     notas: $("f-notas").value,
     etapa: state.etapa,
+    tipo: state.tipo,
     fecha: $("f-fecha").value || null,
     etiquetas: parseTags($("f-etiquetas").value),
     funciono: $("f-funciono").checked,

@@ -77,7 +77,10 @@
       </section>
 
       <section id="v-todas" hidden>
-        <div class="filters"><select id="tagfilter" aria-label="Filtrar por etiqueta"><option value="">Todas las etiquetas</option></select></div>
+        <div class="filters">
+          <select id="tipofilter" aria-label="Filtrar por tipo"><option value="">Todos los tipos</option></select>
+          <select id="tagfilter" aria-label="Filtrar por etiqueta"><option value="">Todas las etiquetas</option></select>
+        </div>
         <div id="todas"></div>
       </section>
 
@@ -93,6 +96,10 @@
   <form id="dlg-form" method="dialog">
     <label>Título <input id="f-titulo" required maxlength="300"></label>
     <label>Notas <textarea id="f-notas" rows="6" placeholder="Hook, guion, enlaces…"></textarea></label>
+    <fieldset>
+      <legend>Tipo de publicación</legend>
+      <div id="f-tipo" class="seg"></div>
+    </fieldset>
     <fieldset>
       <legend>Etapa</legend>
       <div id="f-etapa" class="seg"></div>
