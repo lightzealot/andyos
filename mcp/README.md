@@ -19,7 +19,7 @@ El token y la contraseña solo viven en Easypanel y en tu cliente. No los pegues
 1. Servicio **App** desde el repo `lightzealot/andyos`, rama `main`.
 2. Build: **Dockerfile**, ruta `mcp/Dockerfile`, contexto en la raíz del repo.
 3. Variables de arriba.
-4. Dominio (por ejemplo `mcp.andresgomez.store`), puerto **3000**, protocolo HTTP (Easypanel pone el HTTPS).
+4. Dominio (por ejemplo `mcp.andresgomez.store`), puerto **80** (Easypanel define `PORT=80`; sin esa variable el servidor usa 3000), protocolo HTTP (Easypanel pone el HTTPS).
 5. Comprobar: `curl https://mcp.andresgomez.store/health` → `{"ok":true}`.
 
 ## Conectar clientes
