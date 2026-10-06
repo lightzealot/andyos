@@ -236,13 +236,21 @@ $("f-borrar").onclick = async () => {
 $("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = $("login-msg");
+  const password = $("login-pass").value;
+  if (!password) { msg.textContent = "Escribe tu contraseña, o pide el enlace por correo."; return; }
+  msg.textContent = "Entrando…";
+  const { error } = await sb.auth.signInWithPassword({ email: $("login-email").value.trim(), password });
+  msg.textContent = error ? `No se pudo entrar: ${error.message}` : "";
+});
+$("login-link").onclick = async () => {
+  const msg = $("login-msg");
   msg.textContent = "Enviando…";
   const { error } = await sb.auth.signInWithOtp({
     email: $("login-email").value.trim(),
     options: { emailRedirectTo: location.origin + location.pathname },
   });
   msg.textContent = error ? `No se pudo enviar: ${error.message}` : "Listo. Revisa tu correo y abre el enlace.";
-});
+};
 
 /* ---------- sesión ---------- */
 let usuarioActual = null;

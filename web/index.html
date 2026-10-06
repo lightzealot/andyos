@@ -13,11 +13,14 @@
 <main id="login" hidden>
   <form id="login-form" class="login">
     <h1>Panel de contenido</h1>
-    <p class="muted">Te enviamos un enlace al correo para entrar.</p>
     <label>Correo
-      <input id="login-email" type="email" required autocomplete="email" value="hello@andresgomez.store">
+      <input id="login-email" type="email" required autocomplete="username" value="hello@andresgomez.store">
     </label>
-    <button class="btn primary" type="submit">Enviar enlace</button>
+    <label>Contraseña
+      <input id="login-pass" type="password" autocomplete="current-password">
+    </label>
+    <button class="btn primary" type="submit">Entrar</button>
+    <button class="btn ghost" type="button" id="login-link">Enviar enlace al correo</button>
     <p id="login-msg" class="muted" role="status"></p>
   </form>
 </main>
