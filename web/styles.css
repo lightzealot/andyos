@@ -3,7 +3,7 @@
   --bg:#070d0f; --panel:#0d1315; --card:#12191b; --tile:#192023;
   --border:#20282c; --border-soft:#1b2225;
   --ink:#e4f3f8; --ink2:#92a6ad; --ink3:#63757b;
-  --accent:#cf7f42; --accent-hi:#e0975d; --accent-deep:#a35f2a;
+  --accent:#4c8dff; --accent-hi:#6ea8ff; --accent-deep:#2f6fe0;
   --green:#5bbd8b; --red:#dd6b58; --gold:#d9a441;
   --c-idea:#d9a441; --c-guion:#6fb3c8; --c-grabado:#e0975d; --c-editado:#b69cf0; --c-publicado:#5bbd8b;
   --r-sm:6px; --r-md:9px; --r-lg:14px;
@@ -26,7 +26,7 @@ label{display:block;font-size:.85rem;color:var(--ink2);margin-bottom:14px}
 label input,label textarea{margin-top:5px;color:var(--ink)}
 .btn{border:1px solid var(--border);background:var(--card);padding:9px 16px;border-radius:var(--r-md);cursor:pointer;min-height:42px}
 .btn:hover{border-color:var(--ink3)}
-.btn.primary{background:linear-gradient(180deg,var(--accent-hi),var(--accent));color:#1c0f05;border-color:transparent;font-weight:600;box-shadow:0 2px 10px rgba(207,127,66,.25)}
+.btn.primary{background:linear-gradient(180deg,var(--accent-hi),var(--accent));color:#06122b;border-color:transparent;font-weight:600;box-shadow:0 2px 10px rgba(76,141,255,.25)}
 .btn.primary:hover{filter:brightness(1.06)}
 .btn.danger{color:var(--red)}
 .btn.ghost{background:transparent}
@@ -38,7 +38,7 @@ label input,label textarea{margin-top:5px;color:var(--ink)}
 .app{display:flex;min-height:100vh}
 .sidebar{width:220px;flex:none;border-right:1px solid var(--border-soft);display:flex;flex-direction:column;padding:20px 10px;position:sticky;top:0;height:100vh}
 .brand{display:flex;align-items:center;gap:10px;padding:0 12px 20px;border-bottom:1px solid var(--border-soft);margin-bottom:12px}
-.mark{width:24px;height:24px;border-radius:50%;background:linear-gradient(150deg,#e8a568,#b96a2c)}
+.mark{height:26px;width:auto;display:block}
 .brand-name{font-weight:600;font-size:1.05rem;letter-spacing:-.01em}
 .nav{display:flex;flex-direction:column;gap:2px}
 .nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:9px 12px;border:0;border-radius:var(--r-md);background:transparent;color:var(--ink2);cursor:pointer}
@@ -89,7 +89,7 @@ label input,label textarea{margin-top:5px;color:var(--ink)}
 .tag{color:var(--ink3)}
 .star{color:var(--gold)}
 .adv{margin-left:auto;border:1px solid var(--border);background:transparent;border-radius:999px;padding:1px 10px;cursor:pointer;color:var(--ink2)}
-.adv:hover{color:#1c0f05;background:var(--accent);border-color:var(--accent)}
+.adv:hover{color:#06122b;background:var(--accent);border-color:var(--accent)}
 .hoy .card{border-left:3px solid var(--accent)}
 .empty{color:var(--ink3);font-size:.9rem;padding:2px}
 .stage-group h2{font-size:.95rem}
@@ -103,7 +103,7 @@ fieldset{border:0;padding:0;margin:0 0 14px}
 legend{font-size:.85rem;color:var(--ink2);padding:0;margin-bottom:6px}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:6px 13px;cursor:pointer;min-height:34px;color:var(--ink2)}
-.seg button.on{background:var(--accent);color:#1c0f05;border-color:transparent;font-weight:600}
+.seg button.on{background:var(--accent);color:#06122b;border-color:transparent;font-weight:600}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .check{display:flex;gap:8px;align-items:center;color:var(--ink)}
 .check input{width:auto;margin:0;accent-color:var(--accent)}
@@ -145,7 +145,7 @@ legend{font-size:.85rem;color:var(--ink2);padding:0;margin-bottom:6px}
 .seg button.tipo-btn{border-radius:var(--r-md)}
 .card[draggable="true"]{cursor:grab}
 .card.dragging{opacity:.4}
-.drop-over{outline:2px dashed var(--accent);outline-offset:-2px;background:rgba(207,127,66,.07)}
+.drop-over{outline:2px dashed var(--accent);outline-offset:-2px;background:rgba(76,141,255,.07)}
 .inbox,.stage-group{border-radius:var(--r-lg)}
 .inbox{padding:0 0 8px}
 @media (hover:none){.card[draggable="true"]{cursor:pointer}}
@@ -178,3 +178,5 @@ h2{margin:22px 0 10px}
   .stage-group.idea{--dot:var(--c-idea)}.stage-group.guion{--dot:var(--c-guion)}.stage-group.grabado{--dot:var(--c-grabado)}
   .stage-group.editado{--dot:var(--c-editado)}.stage-group.publicado{--dot:var(--c-publicado)}
 }
+
+.login-logo{display:block;height:44px;width:auto;margin:0 0 18px}

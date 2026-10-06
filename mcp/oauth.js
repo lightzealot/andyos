@@ -71,7 +71,7 @@ export function crearOAuth(secreto) {
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#070d0f;color:#e4f3f8;font:16px/1.5 system-ui,sans-serif;padding:16px}
 form{width:100%;max-width:400px;background:#0d1315;border:1px solid #20282c;border-radius:16px;padding:28px}
 h1{font-size:1.25rem;margin:0 0 8px}p{color:#92a6ad;margin:0 0 16px}input{width:100%;padding:11px 13px;border:1px solid #20282c;border-radius:9px;background:#12191b;color:inherit;font:inherit}
-button{width:100%;margin-top:12px;padding:11px;border:0;border-radius:9px;background:#cf7f42;color:#1c0f05;font:inherit;font-weight:600;cursor:pointer}.e{color:#dd6b58}</style></head>
+button{width:100%;margin-top:12px;padding:11px;border:0;border-radius:9px;background:#4c8dff;color:#06122b;font:inherit;font-weight:600;cursor:pointer}.e{color:#dd6b58}</style></head>
 <body><form method="post" action="/aprobar"><h1>Aprobar acceso</h1>
 <p><b>${esc(nombre || "Una aplicación")}</b> quiere acceder a tu panel de contenido. Escribe tu clave para aprobarlo.</p>
 ${error ? `<p class="e">${esc(error)}</p>` : ""}
