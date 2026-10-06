@@ -105,8 +105,20 @@ function poblar(cont, piezas, vacio) {
 }
 
 /* ---------- render ---------- */
+function renderStats() {
+  const hoy = ymd(new Date());
+  const ini = ymd(state.weekStart), fin = ymd(addDays(state.weekStart, 6));
+  const ps = state.piezas;
+  $("st-hoy").textContent = ps.filter((p) => p.fecha === hoy && p.etapa !== "publicado").length;
+  $("st-semana").textContent = ps.filter((p) => p.fecha >= ini && p.fecha <= fin).length;
+  $("st-sin").textContent = ps.filter((p) => !p.fecha && p.etapa !== "publicado").length;
+  $("st-func").textContent = ps.filter((p) => p.funciono).length;
+}
+const TITULOS = { semana: "Semana", todas: "Todas las piezas", funciono: "Funcionaron" };
 function render() {
-  if (state.view === "semana") renderSemana();
+  $("title").textContent = TITULOS[state.view];
+  $("weeknav").hidden = state.view !== "semana";
+  if (state.view === "semana") { renderStats(); renderSemana(); }
   else if (state.view === "todas") renderTodas();
   else renderFuncionaron();
 }

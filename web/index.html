@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f7f6f3">
+<meta name="theme-color" content="#070d0f">
 <meta name="robots" content="noindex">
 <title>Panel de contenido</title>
 <link rel="stylesheet" href="styles.css">
@@ -25,52 +25,68 @@
   </form>
 </main>
 
-<div id="app" hidden>
-  <header class="top">
-    <div class="top-row">
-      <h1>Panel</h1>
-      <nav class="tabs" id="tabs" aria-label="Vistas">
-        <button data-view="semana" class="on">Semana</button>
-        <button data-view="todas">Todas</button>
-        <button data-view="funciono">Funcionaron</button>
-      </nav>
-      <button id="logout" class="btn ghost small" title="Cerrar sesión">Salir</button>
-    </div>
-    <form id="capture" class="capture">
-      <input id="capture-input" placeholder="Anota una idea y pulsa Enter…" maxlength="300" autocomplete="off" aria-label="Nueva idea">
-      <button class="btn primary" type="submit">Añadir</button>
-    </form>
-  </header>
+<div id="app" class="app" hidden>
+  <aside class="sidebar">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><span class="brand-name">Panel</span></div>
+    <nav id="tabs" class="nav" aria-label="Vistas">
+      <button data-view="semana" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Semana</button>
+      <button data-view="todas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Todas</button>
+      <button data-view="funciono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>Funcionaron</button>
+    </nav>
+    <button id="logout" class="nav-out"><span class="lg">Cerrar sesión</span><span class="sm">Salir</span></button>
+  </aside>
 
-  <p id="status" class="status" role="status" hidden></p>
+  <div class="main">
+    <header class="topbar">
+      <form id="capture" class="capture">
+        <input id="capture-input" placeholder="Anota una idea y pulsa Enter…" maxlength="300" autocomplete="off" aria-label="Nueva idea">
+        <button class="btn primary" type="submit">Añadir</button>
+      </form>
+    </header>
 
-  <section id="v-semana">
-    <div class="weeknav">
-      <button id="prev" class="btn ghost small" aria-label="Semana anterior">‹</button>
-      <button id="today" class="btn ghost small">Hoy</button>
-      <button id="next" class="btn ghost small" aria-label="Semana siguiente">›</button>
-      <strong id="weeklabel"></strong>
-    </div>
-    <div id="hoy-wrap" class="hoy" hidden>
-      <h2>Para hoy</h2>
-      <div id="hoy" class="list"></div>
-    </div>
-    <div id="week" class="week"></div>
-    <div class="inbox">
-      <h2>Sin fecha <span id="inbox-count" class="count"></span></h2>
-      <div id="inbox" class="list"></div>
-    </div>
-  </section>
+    <div class="panel">
+      <div class="phead">
+        <h1 id="title">Semana</h1>
+        <div class="weeknav" id="weeknav">
+          <button id="prev" class="icon" aria-label="Semana anterior">‹</button>
+          <strong id="weeklabel"></strong>
+          <button id="next" class="icon" aria-label="Semana siguiente">›</button>
+          <button id="today" class="btn small">Hoy</button>
+        </div>
+      </div>
 
-  <section id="v-todas" hidden>
-    <div class="filters"><select id="tagfilter" aria-label="Filtrar por etiqueta"><option value="">Todas las etiquetas</option></select></div>
-    <div id="todas"></div>
-  </section>
+      <p id="status" class="status" role="status" hidden></p>
 
-  <section id="v-funciono" hidden>
-    <p class="muted">Piezas marcadas como «funcionó». Reutilízalas como modelo.</p>
-    <div id="funciono" class="list"></div>
-  </section>
+      <section id="v-semana">
+        <div class="stats">
+          <div class="tile"><span>Para hoy</span><b id="st-hoy">0</b></div>
+          <div class="tile"><span>Esta semana</span><b id="st-semana">0</b></div>
+          <div class="tile"><span>Sin fecha</span><b id="st-sin">0</b></div>
+          <div class="tile ok"><span>Funcionaron</span><b id="st-func">0</b></div>
+        </div>
+        <div id="hoy-wrap" class="hoy" hidden>
+          <h2>Para hoy</h2>
+          <div id="hoy" class="list"></div>
+        </div>
+        <h2>Calendario</h2>
+        <div id="week" class="week"></div>
+        <div class="inbox">
+          <h2>Sin fecha <span id="inbox-count" class="count"></span></h2>
+          <div id="inbox" class="list"></div>
+        </div>
+      </section>
+
+      <section id="v-todas" hidden>
+        <div class="filters"><select id="tagfilter" aria-label="Filtrar por etiqueta"><option value="">Todas las etiquetas</option></select></div>
+        <div id="todas"></div>
+      </section>
+
+      <section id="v-funciono" hidden>
+        <p class="muted">Piezas marcadas como «funcionó». Reutilízalas como modelo.</p>
+        <div id="funciono" class="list"></div>
+      </section>
+    </div>
+  </div>
 </div>
 
 <dialog id="dlg">
