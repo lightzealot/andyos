@@ -4,7 +4,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY mcp/package.json mcp/package-lock.json ./
 RUN npm ci --omit=dev
-COPY mcp/server.js mcp/tools.js ./
+COPY mcp/server.js mcp/tools.js mcp/oauth.js ./
 USER node
 EXPOSE 3000 80
 HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- "http://127.0.0.1:${PORT:-3000}/health" || exit 1
