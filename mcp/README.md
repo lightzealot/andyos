@@ -23,23 +23,25 @@ El token y la contraseña solo viven en Easypanel y en tu cliente. No los pegues
 5. Comprobar: `curl https://mcp.andresgomez.store/health` → `{"ok":true}`.
 
 ## Conectar clientes
-Claude Code:
+
+### Claude Desktop y claude.ai (Settings → Connectors) — OAuth
+1. **Settings → Connectors → Add custom connector**.
+2. URL: `https://mcp.andresgomez.store/mcp`. Deja vacíos el ID y el secreto de cliente (se registran solos).
+3. Claude abre una página del servidor, «Aprobar acceso». Escribe tu clave: es el valor de `MCP_TOKEN`.
+4. Listo: aparecen las 4 herramientas. Los conectores personalizados suelen ligarse a la cuenta, así que también valen en claude.ai web y en el celular.
+
+### Claude Code — token fijo
 ```
 claude mcp add --transport http panel https://mcp.andresgomez.store/mcp --header "Authorization: Bearer TU_TOKEN"
 ```
-Claude Desktop (puente `mcp-remote`, en `claude_desktop_config.json`):
-```json
-{ "mcpServers": { "panel": {
-  "command": "npx",
-  "args": ["-y", "mcp-remote", "https://mcp.andresgomez.store/mcp", "--header", "Authorization:${PANEL_AUTH}"],
-  "env": { "PANEL_AUTH": "Bearer TU_TOKEN" }
-} } }
-```
-No funciona en claude.ai web ni en el celular (exigen OAuth).
 
-## Seguridad
-- `/mcp` exige `Authorization: Bearer` (comparación en tiempo constante) y bloquea tras 20 intentos fallidos por minuto.
-- Rota el token cambiando `MCP_TOKEN` en Easypanel y en tus clientes.
+## Cómo funciona la seguridad
+- `/mcp` solo acepta un token Bearer: el token fijo (`MCP_TOKEN`) o un token OAuth firmado (acceso 1 h, refresco 30 días).
+- OAuth sin estado: client_id, códigos y tokens son cadenas firmadas con HMAC derivadas de `MCP_TOKEN`. No hay base de datos y sobreviven a reinicios.
+- Los códigos de autorización duran 5 min, son de un solo uso y exigen PKCE (S256). Las `redirect_uri` deben coincidir con las registradas.
+- La clave de aprobación es `MCP_TOKEN`; tras 10 intentos fallidos en 15 min la página se bloquea.
+- **Rotar `MCP_TOKEN` en Easypanel invalida todas las sesiones OAuth y el token fijo.** Tendrás que reconectar los clientes.
+- Variable opcional `PUBLIC_URL` (por defecto `https://mcp.andresgomez.store`): debe coincidir con el dominio público.
 - Si cambias la contraseña del panel, actualiza `PANEL_PASSWORD`.
 
 ## Pruebas
